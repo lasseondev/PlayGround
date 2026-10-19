@@ -1,0 +1,11 @@
+{
+  "name": "rocket-rumble",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Rocket Rumble — a neon 3D car soccer game built with Three.js",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.js"
+  }
+}

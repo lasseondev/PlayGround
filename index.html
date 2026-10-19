@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#05070d" />
+  <meta name="description" content="Rocket Rumble - a fast, neon 3D car soccer game built with Three.js." />
+  <title>Rocket Rumble — 3D Car Soccer</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js",
+        "three/addons/": "./vendor/addons/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" aria-label="Rocket Rumble game arena"></canvas>
+    <div class="grade" aria-hidden="true"></div>
+    <div class="scanlines" aria-hidden="true"></div>
+
+    <div id="hud" class="hud is-hidden" aria-live="polite">
+      <header class="topbar">
+        <div class="scoreboard">
+          <div class="team team-blue">
+            <span class="team-tag">BLUE</span>
+            <span id="blueScore" class="team-score">0</span>
+          </div>
+          <div class="clock-wrap">
+            <span id="clock" class="clock">3:00</span>
+            <span id="stage" class="stage">RANKED 1V1</span>
+          </div>
+          <div class="team team-orange">
+            <span id="orangeScore" class="team-score">0</span>
+            <span class="team-tag">ORANGE</span>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button id="soundBtn" class="icon-btn" type="button" aria-label="Mute sound" title="Mute sound">
+            <span class="sound-on" aria-hidden="true">♪</span>
+            <span class="sound-off is-hidden" aria-hidden="true">×</span>
+          </button>
+          <button id="pauseBtn" class="icon-btn" type="button" aria-label="Pause" title="Pause">❚❚</button>
+        </div>
+      </header>
+
+      <div id="announcer" class="announcer" aria-live="assertive">
+        <div id="announceMain" class="announce-main"></div>
+        <div id="announceSub" class="announce-sub"></div>
+      </div>
+
+      <div class="bottom-left">
+        <div class="stat-block">
+          <span class="stat-label">SPEED</span>
+          <span id="speed" class="stat-value">0</span>
+          <span class="stat-unit">KM/H</span>
+        </div>
+        <div id="cameraLabel" class="pill">CHASE CAM</div>
+      </div>
+
+      <div class="bottom-right">
+        <div id="boostRing" class="boost-ring" style="--boost: 100">
+          <div class="boost-inner">
+            <span id="boostValue" class="boost-value">100</span>
+            <span class="boost-label">BOOST</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="hint" class="hint">
+        <span><b>WASD</b> drive</span>
+        <span><b>SPACE</b> jump ×2</span>
+        <span><b>SHIFT</b> boost</span>
+        <span><b>C</b> camera</span>
+      </div>
+
+      <div id="touchControls" class="touch-controls" aria-hidden="true">
+        <div class="dpad">
+          <button class="touch-btn t-up" data-action="throttle" type="button" aria-label="Accelerate">▲</button>
+          <button class="touch-btn t-left" data-action="left" type="button" aria-label="Steer left">◀</button>
+          <button class="touch-btn t-down" data-action="brake" type="button" aria-label="Reverse">▼</button>
+          <button class="touch-btn t-right" data-action="right" type="button" aria-label="Steer right">▶</button>
+        </div>
+        <div class="action-pad">
+          <button class="touch-btn t-boost" data-action="boost" type="button" aria-label="Boost">BOOST</button>
+          <button class="touch-btn t-jump" data-action="jump" type="button" aria-label="Jump">JUMP</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="menu" class="overlay menu-overlay">
+      <div class="menu-shell">
+        <div class="menu-copy">
+          <p class="eyebrow"><span></span> NEON LEAGUE // 1V1 <span></span></p>
+          <h1 class="logo" aria-label="Rocket Rumble">
+            <span class="logo-top">ROCKET</span>
+            <span class="logo-bottom">RUMBLE</span>
+          </h1>
+          <p class="tagline">3D CAR SOCCER</p>
+          <p class="menu-blurb">Boost. Flip. Score. Outplay the machine in a neon arena built for aerial chaos.</p>
+          <div class="menu-actions">
+            <button id="playBtn" class="primary-btn" type="button">
+              <span class="btn-shine" aria-hidden="true"></span>
+              PLAY
+            </button>
+            <button id="howBtn" class="ghost-btn" type="button">HOW TO PLAY</button>
+          </div>
+          <div class="menu-meta">
+            <span><i class="dot dot-blue"></i> BLUE — YOU</span>
+            <span><i class="dot dot-orange"></i> ORANGE — CPU</span>
+          </div>
+        </div>
+
+        <div id="howPanel" class="how-panel is-hidden">
+          <div class="how-head">
+            <h2>PILOT BRIEFING</h2>
+            <button id="howClose" class="icon-btn" type="button" aria-label="Close how to play">×</button>
+          </div>
+          <div class="how-grid">
+            <div class="how-item"><span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><div><b>DRIVE</b><small>Accelerate, brake, and steer.</small></div></div>
+            <div class="how-item"><span class="keys"><kbd>SPACE</kbd></span><div><b>JUMP / FLIP</b><small>Tap twice to dodge into the ball.</small></div></div>
+            <div class="how-item"><span class="keys"><kbd>SHIFT</kbd></span><div><b>BOOST</b><small>Burn boost for speed and big hits.</small></div></div>
+            <div class="how-item"><span class="keys"><kbd>C</kbd></span><div><b>BALL CAM</b><small>Switch between chase and ball camera.</small></div></div>
+            <div class="how-item"><span class="keys"><kbd>ESC</kbd></span><div><b>PAUSE</b><small>Freeze the match and reset.</small></div></div>
+            <div class="how-item"><span class="keys"><kbd>R</kbd></span><div><b>KICKOFF</b><small>Reset the ball and both cars.</small></div></div>
+          </div>
+          <p class="how-foot">Collect glowing pads to refill boost. The clock runs for three minutes — if it ends level, golden-goal overtime decides it.</p>
+        </div>
+      </div>
+      <div class="menu-foot">
+        <span>THREE.JS // WEBGL</span>
+        <span class="menu-foot-mid">60 FPS TARGET</span>
+        <span>SEASON 01</span>
+      </div>
+    </div>
+
+    <div id="pause" class="overlay pause-overlay is-hidden">
+      <div class="panel">
+        <p class="eyebrow"><span></span> MATCH PAUSED <span></span></p>
+        <h2 class="panel-title">HOLD POSITION</h2>
+        <p class="panel-sub" id="pauseScore">BLUE 0 — 0 ORANGE</p>
+        <div class="panel-actions">
+          <button id="resumeBtn" class="primary-btn" type="button">RESUME</button>
+          <button id="restartBtn" class="ghost-btn" type="button">RESTART</button>
+        </div>
+        <p class="panel-tip">Press <kbd>ESC</kbd> to resume</p>
+      </div>
+    </div>
+
+    <div id="results" class="overlay results-overlay is-hidden">
+      <div class="panel results-panel">
+        <p class="eyebrow"><span></span> FINAL WHISTLE <span></span></p>
+        <h2 id="resultTitle" class="panel-title">VICTORY</h2>
+        <p id="resultScore" class="result-score">3 — 1</p>
+        <p id="resultSub" class="panel-sub">Blue takes the arena.</p>
+        <div class="panel-actions">
+          <button id="againBtn" class="primary-btn" type="button">PLAY AGAIN</button>
+          <button id="menuBtn" class="ghost-btn" type="button">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="goalFlash" class="goal-flash" aria-hidden="true"></div>
+    <div id="loading" class="loading">
+      <div class="loader-ring"></div>
+      <p>IGNITING ARENA</p>
+    </div>
+    <noscript><div class="no-js">This game needs JavaScript and WebGL.</div></noscript>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
