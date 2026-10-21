@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Warcraft 3D RTS</title>
+<style>
+  html,body{margin:0;padding:0;overflow:hidden;background:#000;font-family:Arial,sans-serif;color:#eee;height:100%;min-height:100vh}
+  #game{position:fixed;inset:0}
+  #ui{position:fixed;inset:0;pointer-events:none;z-index:10}
+  .panel{pointer-events:auto;background:rgba(10,12,20,.75);border:1px solid #555;padding:6px 10px;border-radius:6px}
+  #topbar{position:absolute;top:8px;left:8px;display:flex;gap:12px;font-size:14px}
+  .res{display:flex;align-items:center;gap:6px}
+  .res .icon{width:16px;height:16px;border-radius:50%}
+  #goldicon{background:gold}#woodicon{background:#6b4423}#supplyicon{background:#aaa}
+  #minimap{position:absolute;bottom:8px;left:8px;width:180px;height:180px;background:#111;border:2px solid #555}
+  #cmd{position:absolute;bottom:8px;right:8px;width:320px;min-height:120px}
+  #buildmenu{position:absolute;bottom:140px;right:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:320px}
+  .btn{pointer-events:auto;background:#222;border:1px solid #777;color:#eee;padding:6px 4px;font-size:12px;cursor:pointer;border-radius:4px;text-align:center}
+  .btn:hover{background:#333;border-color:#fff}
+  .btn.disabled{opacity:.4;pointer-events:none}
+  #selectionbox{position:absolute;border:1px solid #0f0;background:rgba(0,255,0,.1);display:none;pointer-events:none}
+  #tooltip{position:absolute;display:none;background:rgba(0,0,0,.8);padding:4px 8px;font-size:12px;border-radius:4px;pointer-events:none}
+  #msg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;font-weight:bold;display:none;text-shadow:0 0 8px #000}
+  #help{position:absolute;top:8px;right:8px;font-size:11px;opacity:.7;max-width:260px}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="ui">
+  <div id="topbar" class="panel">
+    <div class="res"><div class="icon" id="goldicon"></div><span id="gold">0</span></div>
+    <div class="res"><div class="icon" id="woodicon"></div><span id="wood">0</span></div>
+    <div class="res"><div class="icon" id="supplyicon"></div><span id="supply">0/0</span></div>
+  </div>
+  <canvas id="minimap"></canvas>
+  <div id="buildmenu"></div>
+  <div id="cmd" class="panel"></div>
+  <div id="selectionbox"></div>
+  <div id="tooltip"></div>
+  <div id="msg"></div>
+  <div id="help" class="panel">Left drag: select. Right click: move/attack/gather/build. WASD: pan. Mouse wheel: zoom. Space: center on selection.</div>
+</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
