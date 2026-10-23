@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#05090f" />
+  <title>STARCRAFT 3D — Operation Dark Expanse</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="scene"></canvas>
+
+    <div id="hud" class="hud hidden">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div class="brand-text">
+            <span class="brand-title">STARCRAFT <b>3D</b></span>
+            <span class="brand-sub">TERRAN DOMINION // FRONTIER COMMAND</span>
+          </div>
+        </div>
+        <div class="resources">
+          <div class="res-pill minerals"><svg viewBox="0 0 24 24" class="res-icon"><path d="M12 2 20 8.5 17 20H7L4 8.5 12 2Z"/><path d="m12 5.2 4.7 3.9L15 17.4H9L7.3 9.1 12 5.2Z" class="cut"/></svg><span id="res-minerals">425</span><small>MINERALS</small></div>
+          <div class="res-pill gas"><svg viewBox="0 0 24 24" class="res-icon"><path d="M8 3h8v4l3 4v10H5V11l3-4V3Z"/><path d="M9.5 11h5M9.5 14h5" class="line"/></svg><span id="res-gas">150</span><small>VESPENE</small></div>
+          <div class="res-pill supply"><svg viewBox="0 0 24 24" class="res-icon"><path d="M4 19 12 4l8 15H4Z"/><path d="M8 15h8" class="line"/></svg><span id="res-supply">8/20</span><small>SUPPLY</small></div>
+        </div>
+        <div class="top-actions">
+          <button id="audio-toggle" class="icon-btn" aria-label="Toggle audio" title="Audio">◈</button>
+          <div class="clock"><span class="live-dot"></span><span id="clock">00:00</span></div>
+        </div>
+      </div>
+
+      <div class="mission panel">
+        <div class="panel-corner tl"></div><div class="panel-corner br"></div>
+        <div class="mission-head"><span class="eyebrow">MISSION 01</span><h2>DARK EXPANSE</h2></div>
+        <p class="mission-brief">Hold the Char-9 outpost against the Swarm. Protect the command center at all costs.</p>
+        <div class="objective" id="obj-primary"><span class="obj-state"></span><div><b>HOLD THE LINE</b><small>Survive all five assault waves</small></div></div>
+        <div class="objective" id="obj-economy"><span class="obj-state"></span><div><b>KEEP MINERALS FLOWING</b><small>SCVs harvesting: <span id="scv-count">3</span></small></div></div>
+        <div class="mission-meta"><span>THREAT</span><div class="threat-track"><i id="threat-fill"></i></div><b id="threat-label">LOW</b></div>
+      </div>
+
+      <div class="threat panel">
+        <span class="eyebrow">SWARM ACTIVITY</span>
+        <div class="wave-line"><span>INCOMING WAVE <b id="wave-num">1</b>/5</span><strong id="wave-timer">00:45</strong></div>
+        <div class="wave-bar"><i id="wave-progress"></i></div>
+        <div class="threat-stats"><div><span id="enemy-count">0</span><small>HOSTILES</small></div><div><span id="kill-count">0</span><small>ELIMINATED</small></div></div>
+      </div>
+
+      <div class="bottom">
+        <div class="selection panel" id="selection">
+          <div class="panel-corner tl"></div><div class="panel-corner br"></div>
+          <div class="sel-head"><span class="eyebrow">ACTIVE SELECTION</span><span id="sel-count" class="sel-count">0</span></div>
+          <div class="sel-body">
+            <canvas id="portrait" width="128" height="128"></canvas>
+            <div class="sel-info">
+              <h3 id="sel-name">NO UNIT SELECTED</h3>
+              <p id="sel-desc">Select units with left click. Issue orders with right click.</p>
+              <div class="hp-row"><div class="hp-bar"><i id="sel-hp"></i></div><span id="sel-hp-text">—</span></div>
+              <div class="sel-stats" id="sel-stats"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="command panel">
+          <div class="cmd-head"><span class="eyebrow">COMMAND CONSOLE</span><span class="cmd-hint">HOTKEYS 1–8</span></div>
+          <div class="cmd-grid" id="cmd-grid"></div>
+          <div class="cmd-status"><span id="build-status">SYSTEMS NOMINAL</span><span class="key-hints"><b>LMB</b> SELECT · <b>RMB</b> ORDER · <b>WASD</b> PAN · <b>Q/E</b> ROTATE · <b>WHEEL</b> ZOOM</span></div>
+        </div>
+
+        <div class="minimap-panel panel">
+          <div class="panel-corner tl"></div><div class="panel-corner br"></div>
+          <div class="mm-head"><span class="eyebrow">TACTICAL MAP</span><span class="mm-sector">SECTOR 7G</span></div>
+          <canvas id="minimap" width="220" height="180"></canvas>
+          <div class="mm-foot"><span>CHAR-9</span><span>22:41 GST</span></div>
+        </div>
+      </div>
+
+      <div id="toasts"></div>
+    </div>
+
+    <div id="splash" class="splash">
+      <div class="splash-stars"></div>
+      <div class="splash-grid"></div>
+      <div class="splash-frame">
+        <div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
+        <div class="splash-kicker"><span></span>TERRAN DOMINION — FRONTIER COMMAND<span></span></div>
+        <h1>STARCRAFT<span class="title-3d">3D</span></h1>
+        <div class="splash-sub">OPERATION <b>DARK EXPANSE</b></div>
+        <p class="splash-copy">The Swarm is at the gate. Fortify the outpost, command your strike group, and hold the line until the Dominion fleet arrives.</p>
+        <div class="load-line"><i id="load-fill"></i></div>
+        <div class="load-meta"><span id="load-label">INITIALIZING BATTLEFIELD</span><span id="load-pct">0%</span></div>
+        <button id="deploy" class="deploy" disabled>START GAME</button>
+        <div class="splash-foot"><span>BUILD 7.31.2062</span><span>3D REAL-TIME STRATEGY</span><span>ONE SURVIVOR</span></div>
+      </div>
+      <div class="splash-scan"></div>
+    </div>
+
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
+    <div id="flash"></div>
+  </div>
+
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <symbol id="i-marine" viewBox="0 0 48 48"><path d="M24 5c-7 0-11 5-11 12v6l5 3v9l-4 4v4h20v-4l-4-4v-9l5-3v-6C35 10 31 5 24 5Z"/><path d="M18 17h12v4H18z" class="glow"/><path d="M10 27h7v10h-5l-2-4v-6Zm28 0h-7v10h5l2-4v-6Z"/></symbol>
+      <symbol id="i-scv" viewBox="0 0 48 48"><path d="M15 8h18l4 10-4 12H15L11 18 15 8Z"/><path d="M18 30h12v9H18z"/><path d="M8 14 15 18m25-4-7 4M14 22 6 30m28-8 8 8" class="line"/><path d="M17 14h14v6H17z" class="glow"/></symbol>
+      <symbol id="i-tank" viewBox="0 0 48 48"><path d="M4 31h40v8H4z"/><path d="M8 27h32l3 4H5l3-4Z"/><path d="M15 14h18l5 10H10l5-10Z"/><path d="M30 16h14v4H30z" class="glow"/><path d="M9 36h5v3H9zm9 0h5v3h-5zm9 0h5v3h-5zm9 0h5v3h-5z" class="line"/></symbol>
+      <symbol id="i-stim" viewBox="0 0 48 48"><path d="m30 6 12 12-4 4-3-3-14 14 3 3-4 4-8-8 4-4 3 3 14-14-3-3 4-4Z"/><path d="m10 34 4 4-2 5-7 1 1-7 4-3Z" class="glow"/></symbol>
+      <symbol id="i-scan" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" class="line"/><circle cx="24" cy="24" r="10" class="line"/><path d="M24 24 36 13" class="glow"/><circle cx="24" cy="24" r="2.5" class="glow"/><path d="M24 4v5m0 30v5M4 24h5m30 0h5" class="line"/></symbol>
+      <symbol id="i-repair" viewBox="0 0 48 48"><path d="M31 6a11 11 0 0 0-9 17L8 37l3 3 14-14A11 11 0 0 0 42 17l-7 2-5-5 1-8Z"/><circle cx="32" cy="16" r="3" class="glow"/></symbol>
+      <symbol id="i-move" viewBox="0 0 48 48"><path d="M24 5v38M5 24h38" class="line"/><path d="m24 5 8 9h-16l8-9Zm0 38 8-9H16l8 9ZM5 24l9-8v16l-9-8Zm38 0-9-8v16l9-8Z"/></symbol>
+      <symbol id="i-attack" viewBox="0 0 48 48"><circle cx="24" cy="24" r="15" class="line"/><circle cx="24" cy="24" r="7" class="line"/><path d="M24 4v10m0 20v10M4 24h10m20 0h10" class="glow"/></symbol>
+      <symbol id="i-stop" viewBox="0 0 48 48"><path d="M14 14h20v20H14z" class="line"/><path d="M8 8h6v6H8zm26 0h6v6h-6zM8 34h6v6H8zm26 0h6v6h-6z" class="glow"/></symbol>
+      <symbol id="i-supply" viewBox="0 0 48 48"><path d="M6 18 24 7l18 11v20H6V18Z"/><path d="M6 18h36M17 38V23h14v15" class="line"/><path d="M24 7v11" class="glow"/></symbol>
+    </defs>
+  </svg>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
