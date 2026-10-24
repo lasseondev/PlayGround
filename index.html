@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050e13">
+  <title>Legends Arena — Rift Clash</title>
+  <meta name="description" content="A hand-crafted browser MOBA: pick a champion, command minions, break towers and shatter the enemy nexus.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%23071218%27/%3E%3Cpath d=%27M32 8l16 24-16 24-16-24z%27 fill=%27%2352d9ff%27/%3E%3Cpath d=%27M32 18l8 14-8 14-8-14z%27 fill=%27%23f3ce7c%27/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body class="is-menu">
+  <canvas id="game" aria-label="Legends Arena battlefield"></canvas>
+
+  <main id="menu" class="menu">
+    <div class="menu-veil"></div>
+    <div class="menu-content">
+      <header class="menu-hero">
+        <div class="eyebrow"><span></span> An action MOBA forged for the browser <span></span></div>
+        <h1>LEGENDS <em>ARENA</em></h1>
+        <p class="tagline">Choose your champion. Command the lane. Shatter the nexus.</p>
+      </header>
+
+      <section class="select-section" aria-label="Champion select">
+        <div class="select-heading">
+          <h2>Choose Your Champion</h2>
+          <p>Three destinies. One burning rift.</p>
+        </div>
+        <div id="championCards" class="champion-grid"></div>
+      </section>
+
+      <div class="launch-row">
+        <button id="playButton" class="play-button" type="button">
+          <span class="play-icon" aria-hidden="true"></span>
+          Play
+        </button>
+        <div class="quick-controls">
+          <div><kbd>RMB</kbd><span>Move</span></div>
+          <div><kbd>LMB</kbd><span>Attack</span></div>
+          <div><kbd>Q W E R</kbd><span>Abilities</span></div>
+          <div><kbd>D F</kbd><span>Summoners</span></div>
+          <div><kbd>B</kbd><span>Armory</span></div>
+        </div>
+      </div>
+    </div>
+    <footer class="menu-footer">
+      <span>Fan-made prototype inspired by classic MOBA arenas. Not affiliated with Riot Games.</span>
+      <span>1v1 · Single lane · AI opponent</span>
+    </footer>
+  </main>
+
+  <div id="hud" class="hud hidden" aria-hidden="true">
+    <div class="top-bar">
+      <section class="champion-panel player-panel">
+        <div id="playerPortrait" class="portrait"></div>
+        <div class="panel-body">
+          <div class="panel-heading">
+            <strong id="playerName">Aurelia</strong>
+            <span id="playerLevel" class="level-badge">1</span>
+          </div>
+          <div class="bar hp-bar"><div id="playerHpFill" class="bar-fill"></div><span id="playerHpText" class="bar-text">680 / 680</span></div>
+          <div class="bar mana-bar"><div id="playerManaFill" class="bar-fill"></div><span id="playerManaText" class="bar-text">320 / 320</span></div>
+          <div class="panel-stats">
+            <span><b id="playerKda">0 / 0</b> KDA</span>
+            <span><b id="playerCs">0</b> CS</span>
+            <span class="gold"><i></i><b id="playerGold">500</b></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="match-panel">
+        <div class="score-line">
+          <span id="scoreAzure" class="team-score azure">0</span>
+          <div class="match-clock">
+            <span id="matchTimer">00:00</span>
+            <small>RIFT CLASH</small>
+          </div>
+          <span id="scoreCrimson" class="team-score crimson">0</span>
+        </div>
+        <div id="objectiveText" class="objective-text">DESTROY 2 TOWERS TO EXPOSE THE NEXUS</div>
+      </section>
+
+      <section class="champion-panel enemy-panel">
+        <div class="panel-body">
+          <div class="panel-heading">
+            <strong id="enemyName">Kael</strong>
+            <span id="enemyLevel" class="level-badge enemy">1</span>
+          </div>
+          <div class="bar hp-bar enemy"><div id="enemyHpFill" class="bar-fill"></div><span id="enemyHpText" class="bar-text">575 / 575</span></div>
+          <div class="bar mana-bar enemy"><div id="enemyManaFill" class="bar-fill"></div><span id="enemyManaText" class="bar-text">330 / 330</span></div>
+          <div class="panel-stats">
+            <span><b id="enemyKda">0 / 0</b> KDA</span>
+            <span><b id="enemyRole">Marksman</b></span>
+          </div>
+        </div>
+        <div id="enemyPortrait" class="portrait enemy"></div>
+      </section>
+    </div>
+
+    <div id="killfeed" class="killfeed"></div>
+    <div id="announce" class="announcement"><strong></strong><span></span></div>
+
+    <div class="ability-dock">
+      <div id="summonerSlots" class="summoner-slots"></div>
+      <div id="abilitySlots" class="ability-slots"></div>
+      <div id="itemSlots" class="item-slots"></div>
+    </div>
+
+    <section class="map-panel">
+      <div class="map-frame"><canvas id="minimap" width="180" height="180"></canvas></div>
+      <div class="map-legend"><span class="legend-azure"></span>YOU<span class="legend-crimson"></span>ENEMY</div>
+    </section>
+
+    <div class="controls-hint">
+      <span><kbd>RMB</kbd> Move</span>
+      <span><kbd>LMB</kbd> Attack</span>
+      <span><kbd>Q W E R</kbd> Cast</span>
+      <span><kbd>B</kbd> Shop</span>
+      <span><kbd>P</kbd> Pause</span>
+      <span><kbd>M</kbd> Mute</span>
+    </div>
+
+    <div class="action-buttons">
+      <button id="shopButton" class="icon-button" type="button" title="Open armory (B)">Armory</button>
+      <button id="muteButton" class="icon-button" type="button" title="Toggle sound (M)">Sound</button>
+      <button id="pauseButton" class="icon-button" type="button" title="Pause (P)">Pause</button>
+    </div>
+
+    <div id="deathOverlay" class="death-overlay hidden">
+      <div class="death-label">YOU HAVE BEEN SLAIN</div>
+      <div id="respawnTimer" class="respawn-timer">7</div>
+      <div class="death-sub">Returning to the rift</div>
+    </div>
+
+    <div id="joystick" class="joystick hidden">
+      <div class="joystick-ring"><div id="joystickKnob" class="joystick-knob"></div></div>
+    </div>
+    <div class="touch-actions">
+      <button id="touchAttack" class="touch-button attack" type="button">Strike</button>
+      <button id="touchQ" class="touch-button" type="button">Q</button>
+      <button id="touchW" class="touch-button" type="button">W</button>
+      <button id="touchE" class="touch-button" type="button">E</button>
+      <button id="touchR" class="touch-button" type="button">R</button>
+    </div>
+  </div>
+
+  <div id="shop" class="modal shop-modal hidden" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+    <div class="modal-card shop-card">
+      <header class="modal-head">
+        <div>
+          <div class="eyebrow"><span></span> The Armory <span></span></div>
+          <h2 id="shopTitle">Forge Your Power</h2>
+        </div>
+        <div class="shop-wallet"><span>Gold</span><strong id="shopGold">500</strong></div>
+      </header>
+      <div id="shopItems" class="shop-items"></div>
+      <footer class="modal-foot">
+        <span>Press <kbd>1</kbd>–<kbd>9</kbd> to purchase · <kbd>B</kbd> or <kbd>Esc</kbd> to close</span>
+        <button id="shopClose" class="ghost-button" type="button">Close</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="pause" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+    <div class="modal-card pause-card">
+      <div class="eyebrow"><span></span> Battle Paused <span></span></div>
+      <h2 id="pauseTitle">Catch Your Breath</h2>
+      <p>The rift waits. Your cooldowns do too.</p>
+      <div class="pause-actions">
+        <button id="resumeButton" class="solid-button" type="button">Resume</button>
+        <button id="restartButton" class="ghost-button" type="button">Restart</button>
+        <button id="quitButton" class="ghost-button" type="button">Leave Match</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="endScreen" class="end-screen hidden" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+    <div class="end-rays"></div>
+    <div class="end-card">
+      <div id="endEyebrow" class="eyebrow"><span></span> Nexus Destroyed <span></span></div>
+      <h2 id="endTitle">VICTORY</h2>
+      <p id="endSubtitle">The enemy nexus has fallen.</p>
+      <div id="endStats" class="end-stats"></div>
+      <div class="end-actions">
+        <button id="playAgainButton" class="solid-button" type="button">Play Again</button>
+        <button id="menuButton" class="ghost-button" type="button">Champion Select</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
