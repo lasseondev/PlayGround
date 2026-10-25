@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#08090d" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2308090d'/%3E%3Cpath d='M14 44 L14 20 L44 20 L44 36 L30 36 L48 52 L38 52 L24 38 L24 44 Z' fill='%23ff5a1f'/%3E%3C/svg%3E" />
+    <title>QUAKE — 3D Arena</title>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <div class="fx-layer scanlines"></div>
+    <div class="fx-layer grain"></div>
+    <div class="fx-layer vignette"></div>
+
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="hud-brand"><span class="brand-mark">Q</span><span class="brand-text">ARENA</span></div>
+        <div class="wave-block">
+          <div class="wave-label" id="waveLabel">WAVE 01</div>
+          <div class="enemy-track"><i id="enemyBar"></i></div>
+          <div class="enemy-count"><b id="enemiesLeft">0</b> HOSTILES REMAIN</div>
+        </div>
+        <div class="score-block">
+          <span>SCORE</span>
+          <b id="score">000000</b>
+        </div>
+      </div>
+
+      <div id="killfeed" class="killfeed"></div>
+
+      <div id="crosshair" class="crosshair">
+        <i class="ch ch-t"></i>
+        <i class="ch ch-r"></i>
+        <i class="ch ch-b"></i>
+        <i class="ch ch-l"></i>
+        <i class="ch-dot"></i>
+        <div id="hitmarker" class="hitmarker"><span></span><span></span></div>
+      </div>
+
+      <div id="damageFlash" class="damage-flash"></div>
+      <div id="pickupFlash" class="pickup-flash"></div>
+
+      <div class="hud-bottom">
+        <div class="vitals">
+          <div class="vital">
+            <span class="vital-icon cross">+</span>
+            <div class="vital-readout">
+              <b id="health">100</b>
+              <span>HEALTH</span>
+            </div>
+          </div>
+          <div class="vital armor">
+            <span class="vital-icon shield">◆</span>
+            <div class="vital-readout">
+              <b id="armor">0</b>
+              <span>ARMOR</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wave-caption" id="waveCaption">
+          <span class="cap-line"></span>
+          <span>THE SLAYGROUND</span>
+          <span class="cap-line"></span>
+        </div>
+
+        <div class="weapon-panel">
+          <div class="weapon-head">
+            <span id="weaponName">ROCKET LAUNCHER</span>
+            <i id="weaponSlot">01</i>
+          </div>
+          <div class="ammo-row">
+            <b id="ammo">20</b>
+            <div class="ammo-meta">
+              <span id="ammoType">ROCKETS</span>
+              <span class="reload-hint" id="ammoReserve">MAX 50</span>
+            </div>
+          </div>
+          <div class="weapon-list" id="weaponList">
+            <div class="wslot active" data-slot="1"><i>1</i><span>ROCKET</span></div>
+            <div class="wslot" data-slot="2"><i>2</i><span>RAILGUN</span></div>
+            <div class="wslot" data-slot="3"><i>3</i><span>SHOTGUN</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="waveBanner" class="wave-banner">
+        <span id="bannerKicker">INCOMING</span>
+        <b id="bannerTitle">WAVE 01</b>
+        <span id="bannerSub">THEY ARE COMING FOR YOU</span>
+      </div>
+
+      <div id="toast" class="toast"></div>
+
+      <div class="hud-hint">
+        <span><i>WASD</i> MOVE</span>
+        <span><i>SPACE</i> JUMP</span>
+        <span><i>SHIFT</i> DASH</span>
+        <span><i>1-3</i> WEAPONS</span>
+        <span><i>ESC</i> PAUSE</span>
+      </div>
+    </div>
+
+    <div id="menu" class="overlay menu">
+      <div class="menu-scan"></div>
+      <div class="menu-inner">
+        <div class="menu-left">
+          <div class="eyebrow"><span></span> ID NETWORK // LIVE ARENA FEED <b class="live-dot"></b></div>
+          <h1 class="logo">
+            <span class="logo-quake">QUAKE</span>
+            <span class="logo-sub">3D ARENA</span>
+          </h1>
+          <p class="tagline">
+            THE SLAYGROUND IS OPEN. SURVIVE THE HORDE,<br />
+            CHAIN ROCKET JUMPS, AND OWN THE LEADERBOARD.
+          </p>
+
+          <div class="cta-row">
+            <button id="startBtn" class="cta">
+              <span class="cta-glitch" data-text="ENTER THE ARENA"></span>
+              <span class="cta-label">ENTER THE ARENA</span>
+              <span class="cta-arrow">▸</span>
+            </button>
+            <div class="cta-meta">
+              <span>BEST SCORE</span>
+              <b id="bestScore">000000</b>
+            </div>
+          </div>
+
+          <div class="controls">
+            <div class="control"><i>WASD</i><span>MOVE</span></div>
+            <div class="control"><i>MOUSE</i><span>AIM / FIRE</span></div>
+            <div class="control"><i>SPACE</i><span>JUMP</span></div>
+            <div class="control"><i>SHIFT</i><span>DASH</span></div>
+            <div class="control"><i>1 2 3</i><span>WEAPONS</span></div>
+            <div class="control"><i>ESC</i><span>PAUSE</span></div>
+          </div>
+        </div>
+
+        <div class="menu-right">
+          <div class="mission-card">
+            <span class="card-tag">MISSION BRIEF</span>
+            <h2>THE SLAYGROUND</h2>
+            <p>
+              An abandoned foundry at the edge of the void. Something has opened
+              the gates. Hold the platform, harvest the fallen, and let the
+              railgun sing.
+            </p>
+            <div class="card-stats">
+              <div><span>HAZARD</span><b class="hot">EXTREME</b></div>
+              <div><span>WAVES</span><b>ENDLESS</b></div>
+              <div><span>GEAR</span><b>ROCKET / RAIL / SHOTGUN</b></div>
+            </div>
+            <div class="card-emblem">
+              <div class="emblem-ring"></div>
+              <span>Q</span>
+            </div>
+          </div>
+
+          <div class="audio-hint">
+            <span class="eq"><i></i><i></i><i></i><i></i></span>
+            SOUND ON · HEADPHONES RECOMMENDED
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-footer">
+        <span>BUILT WITH THREE.JS</span>
+        <span class="footer-mid">© 2026 SLAYGROUND NETWORK</span>
+        <span>V1.0.0 // NIGHT BUILD</span>
+      </div>
+    </div>
+
+    <div id="pause" class="overlay pause hidden">
+      <div class="pause-card">
+        <span class="card-tag">SIGNAL INTERRUPTED</span>
+        <h2>PAUSED</h2>
+        <p>THE ARENA WAITS. NO ONE LEAVES.</p>
+        <button id="resumeBtn" class="cta small"><span class="cta-label">RESUME COMBAT</span><span class="cta-arrow">▸</span></button>
+        <button id="quitBtn" class="ghost-btn">ABANDON RUN</button>
+      </div>
+    </div>
+
+    <div id="death" class="overlay death hidden">
+      <div class="death-card">
+        <span class="card-tag hot">SIGNAL LOST</span>
+        <h2>YOU DIED</h2>
+        <p class="death-quote" id="deathQuote">"THE ARENA ALWAYS WINS."</p>
+        <div class="death-stats">
+          <div><span>WAVE</span><b id="deathWave">1</b></div>
+          <div><span>SCORE</span><b id="deathScore">0</b></div>
+          <div><span>KILLS</span><b id="deathKills">0</b></div>
+        </div>
+        <button id="retryBtn" class="cta small"><span class="cta-label">RE-ENTER THE ARENA</span><span class="cta-arrow">▸</span></button>
+        <button id="menuBtn" class="ghost-btn">RETURN TO MENU</button>
+      </div>
+    </div>
+
+    <div id="loading" class="overlay loading">
+      <div class="load-mark">Q</div>
+      <div class="load-title">QUAKE <span>3D ARENA</span></div>
+      <div class="load-bar"><i id="loadBar"></i></div>
+      <div class="load-text" id="loadText">FORGING THE SLAYGROUND…</div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
