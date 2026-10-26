@@ -1,0 +1,20 @@
+{
+  "name": "emberfall",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Emberfall — a fantasy real-time strategy battle for the Sunspire Gate.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@fontsource-variable/cinzel": "^5.3.0",
+    "@fontsource-variable/cormorant-garamond": "^5.3.0",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.5"
+  }
+}

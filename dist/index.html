@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#080a0f" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta
+      name="description"
+      content="Emberfall: Siege of the Ashen Crown — command two heroes and a living army in a cinematic fantasy real-time strategy battle."
+    />
+    <title>Emberfall — Siege of the Ashen Crown</title>
+    <script type="module" crossorigin src="/assets/index-jX9mwVco.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-E1wGcgk9.css">
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene" aria-label="The Sundered Field battlefield"></canvas>
+      <div class="grade" aria-hidden="true"></div>
+      <div class="grain" aria-hidden="true"></div>
+      <div class="vignette" aria-hidden="true"></div>
+      <div id="flash" aria-hidden="true"></div>
+
+      <section id="menu" aria-label="Main menu">
+        <div class="menu-crest" aria-hidden="true">
+          <span class="crest-wing left"></span>
+          <span class="crest-sun">✦</span>
+          <span class="crest-wing right"></span>
+        </div>
+        <p class="menu-eyebrow">A tale of the last dawn</p>
+        <h1 class="game-title">
+          <span class="title-ember">EMBER</span><span class="title-fall">FALL</span>
+        </h1>
+        <p class="menu-subtitle">Siege of the Ashen Crown</p>
+        <div class="menu-rule" aria-hidden="true"><i></i><b>✦</b><i></i></div>
+        <p class="menu-blurb">
+          The Ashen King marches on the Sunspire Gate.<br />
+          Command two heroes. Rally the dawn. Break the tide.
+        </p>
+        <button id="start-button" class="start-button" type="button">
+          <span>Start Now</span>
+        </button>
+        <div class="menu-foot">
+          <span><b>WASD</b> command the field</span>
+          <span><b>Drag</b> select your army</span>
+          <span><b>Right click</b> move &amp; attack</span>
+        </div>
+        <p class="menu-tip">For the finest view, play with sound on.</p>
+      </section>
+
+      <div id="hud" class="hud hidden" aria-live="off">
+        <header class="top-bar">
+          <div class="panel gate-panel">
+            <div class="panel-emblem" aria-hidden="true">✶</div>
+            <div class="gate-copy">
+              <span class="eyebrow">Sunspire Gate</span>
+              <div class="meter gate-meter"><i id="gate-fill"></i></div>
+              <span id="gate-text" class="micro">3000 / 3000</span>
+            </div>
+          </div>
+
+          <div class="panel wave-panel">
+            <div id="wave-kicker" class="eyebrow gold">Wave I</div>
+            <div id="wave-title" class="wave-title">The Ashen Vanguard</div>
+            <div id="wave-status" class="micro">Enemies remaining · 9</div>
+            <div class="meter wave-meter"><i id="wave-progress-fill"></i></div>
+          </div>
+
+          <div class="top-right">
+            <div class="panel aether-panel">
+              <div class="aether-gem" aria-hidden="true">◈</div>
+              <div class="aether-copy">
+                <span class="eyebrow">Aether</span>
+                <strong id="aether-value">220</strong>
+              </div>
+              <div id="aether-rate" class="aether-rate">+14 / s</div>
+            </div>
+            <div class="panel minimap-panel">
+              <canvas id="minimap" width="220" height="220" aria-label="Battlefield minimap"></canvas>
+              <div class="minimap-label">The Sundered Field</div>
+              <div class="minimap-corner tl"></div>
+              <div class="minimap-corner tr"></div>
+              <div class="minimap-corner bl"></div>
+              <div class="minimap-corner br"></div>
+            </div>
+          </div>
+        </header>
+
+        <div id="announce" class="announce" role="status"></div>
+        <div id="feed" class="feed" aria-live="polite"></div>
+        <div id="damage-layer" class="damage-layer" aria-hidden="true"></div>
+        <div id="selection-box" class="selection-box hidden"></div>
+
+        <footer class="bottom-bar">
+          <div class="panel hero-panel">
+            <div class="hero-cards">
+              <button class="hero-card selected" type="button" data-hero="aelric" title="Select Aelric, the Dawnblade">
+                <span class="portrait portrait-aelric" aria-hidden="true">
+                  <svg viewBox="0 0 64 64"><path d="M32 7 51 16v15c0 12-8 21-19 26C21 52 13 43 13 31V16Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="m32 18 4 9 10 1-8 7 2 10-8-5-8 5 2-10-8-7 10-1Z" fill="currentColor" opacity=".9"/></svg>
+                </span>
+                <span class="hero-meta">
+                  <span class="hero-name">Aelric</span>
+                  <span class="hero-role">Dawnblade</span>
+                  <span class="hero-hp"><i id="hp-aelric"></i></span>
+                </span>
+                <span class="hero-state" id="state-aelric"></span>
+              </button>
+              <button class="hero-card" type="button" data-hero="ysolde" title="Select Ysolde, the Stormcaller">
+                <span class="portrait portrait-ysolde" aria-hidden="true">
+                  <svg viewBox="0 0 64 64"><path d="M32 6c9 9 14 20 14 29a14 14 0 0 1-28 0c0-9 5-20 14-29Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M32 17v31M24 30h16M20 23h24" stroke="currentColor" stroke-width="2"/><circle cx="32" cy="17" r="4" fill="currentColor"/></svg>
+                </span>
+                <span class="hero-meta">
+                  <span class="hero-name">Ysolde</span>
+                  <span class="hero-role">Stormcaller</span>
+                  <span class="hero-hp"><i id="hp-ysolde"></i></span>
+                </span>
+                <span class="hero-state" id="state-ysolde"></span>
+              </button>
+            </div>
+            <div class="ability-head">
+              <span id="ability-owner" class="eyebrow">Aelric · Dawnblade</span>
+              <span class="micro">Hero arts</span>
+            </div>
+            <div id="ability-bar" class="ability-bar"></div>
+          </div>
+
+          <div class="panel recruit-panel">
+            <div class="recruit-head">
+              <span class="eyebrow gold">Rally the Dawn</span>
+              <span id="unit-cap" class="micro">10 / 26</span>
+            </div>
+            <div id="recruit-grid" class="recruit-grid"></div>
+          </div>
+
+          <div class="panel hints-panel">
+            <div class="hint-row"><span class="key">WASD</span><span>Pan</span><span class="key">Q/E</span><span>Rotate</span></div>
+            <div class="hint-row"><span class="key">Wheel</span><span>Zoom</span><span class="key">Space</span><span>Hero</span></div>
+            <div class="hint-row"><span class="key">1–3</span><span>Hero art</span><span class="key">Z–V</span><span>Recruit</span></div>
+            <div class="hint-row"><span class="key">R</span><span>Center army</span><span class="key">Esc</span><span>Clear</span></div>
+            <button id="mute-button" class="mute-button" type="button" aria-label="Mute sound">Sound On</button>
+          </div>
+        </footer>
+      </div>
+
+      <div id="end-screen" class="end-screen hidden" role="dialog" aria-modal="true">
+        <div class="end-inner">
+          <div id="end-sigil" class="end-sigil">✦</div>
+          <p id="end-kicker" class="eyebrow gold">The field is won</p>
+          <h2 id="end-title">The Dawn Endures</h2>
+          <p id="end-subtitle">The Ashen Crown is broken. The Sunspire burns bright.</p>
+          <div id="end-stats" class="end-stats"></div>
+          <button id="replay-button" class="start-button" type="button"><span>Play Again</span></button>
+        </div>
+      </div>
+
+      <div id="loading" class="loading">
+        <div class="loading-sun">✦</div>
+        <p>Kindling the dawn…</p>
+      </div>
+    </div>
+  </body>
+</html>
