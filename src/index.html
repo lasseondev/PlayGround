@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="The Lantern Hour — a quiet poem about keeping a small light through the dark.">
+  <title>The Lantern Hour — A Poem</title>
+  <style>
+    :root {
+      --ink: #f4efe6;
+      --muted: #b9ae9c;
+      --ember: #e8a86b;
+      --ember-soft: rgba(232, 168, 107, 0.16);
+      --night: #0b1220;
+      --deep: #070c15;
+      --line: rgba(244, 239, 230, 0.14);
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+      --sans: "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(1100px 700px at 78% 8%, rgba(64, 96, 148, 0.22), transparent 60%),
+        radial-gradient(700px 500px at 12% 92%, rgba(232, 168, 107, 0.12), transparent 65%),
+        linear-gradient(155deg, var(--night) 0%, var(--deep) 58%, #0a0f1a 100%);
+      background-attachment: fixed;
+      font-family: var(--serif);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+      opacity: 0.05;
+      mix-blend-mode: screen;
+    }
+
+    .page {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100svh;
+      padding: clamp(2rem, 6vw, 5rem) clamp(1.25rem, 5vw, 4rem);
+      overflow: hidden;
+    }
+
+    .glow {
+      position: absolute;
+      top: 12%;
+      left: 50%;
+      width: min(46rem, 92vw);
+      height: min(46rem, 92vw);
+      transform: translateX(-50%);
+      background: radial-gradient(circle, var(--ember-soft) 0%, transparent 62%);
+      filter: blur(10px);
+      pointer-events: none;
+    }
+
+    .poem {
+      position: relative;
+      width: min(38rem, 100%);
+      padding: clamp(1.75rem, 4vw, 2.75rem) clamp(1.5rem, 5vw, 3.5rem);
+      border: 1px solid var(--line);
+      border-radius: 1.25rem;
+      background: linear-gradient(165deg, rgba(17, 26, 43, 0.82), rgba(8, 13, 24, 0.72));
+      box-shadow:
+        0 40px 90px -35px rgba(0, 0, 0, 0.85),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(6px);
+      animation: rise 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0 0 1.35rem;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--line), transparent);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.35rem, 6vw, 3.3rem);
+      font-weight: 400;
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+    }
+
+    h1 em {
+      color: var(--ember);
+      font-style: italic;
+    }
+
+    .rule {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      margin: 1.3rem 0 1.7rem;
+      color: var(--ember);
+      font-size: 0.75rem;
+      letter-spacing: 0.4em;
+    }
+
+    .rule::before,
+    .rule::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--line));
+    }
+
+    .rule::after { background: linear-gradient(90deg, var(--line), transparent); }
+
+    .stanza {
+      margin: 0 0 1.25rem;
+      font-size: clamp(1.08rem, 2.5vw, 1.24rem);
+      line-height: 1.72;
+      letter-spacing: 0.005em;
+    }
+
+    .stanza:last-of-type { margin-bottom: 0; }
+
+    .stanza span {
+      display: block;
+      opacity: 0.94;
+    }
+
+    .stanza .turn {
+      color: var(--ember);
+      font-style: italic;
+      display: inline;
+    }
+
+    .signature {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 1.8rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .signature strong {
+      color: var(--ink);
+      font-weight: 500;
+      letter-spacing: 0.22em;
+    }
+
+    .footnote {
+      position: relative;
+      margin: 1.5rem 0 0;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 560px) {
+      .page { justify-content: flex-start; padding-top: 3.25rem; }
+      .poem { border-radius: 1rem; }
+      .stanza { line-height: 1.75; margin-bottom: 1.35rem; }
+      .signature { flex-direction: column; align-items: flex-start; gap: 0.45rem; }
+      .footnote { letter-spacing: 0.1em; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .poem { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="glow" aria-hidden="true"></div>
+
+    <article class="poem" aria-labelledby="poem-title">
+      <p class="eyebrow">A poem for the long evening</p>
+      <h1 id="poem-title">The <em>Lantern</em> Hour</h1>
+      <div class="rule" aria-hidden="true">✦</div>
+
+      <p class="stanza">
+        <span>When daylight folds its paper wings</span>
+        <span>and streets forget the sound of day,</span>
+        <span>I light a lantern small and brave</span>
+        <span>and let it keep the dark at bay.</span>
+      </p>
+
+      <p class="stanza">
+        <span>It is not much—a thread of gold,</span>
+        <span>a quiet room, a cup of tea—</span>
+        <span>but <span class="turn">small lights learn the patient art</span></span>
+        <span><span class="turn">of being more than they can be.</span></span>
+      </p>
+
+      <p class="stanza">
+        <span>So if your evening wanders far</span>
+        <span>and every window looks the same,</span>
+        <span>remember one unguarded flame</span>
+        <span>is still enough to call your name.</span>
+      </p>
+
+      <footer class="signature">
+        <strong>PlayGround</strong>
+        <span>Read slowly · stay awhile</span>
+      </footer>
+    </article>
+
+    <p class="footnote">Keep a little light.</p>
+  </main>
+  <script>document.documentElement.dataset.ready = 'true';</script>
+</body>
+</html>
