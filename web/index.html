@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#7fc8e8" />
+  <meta name="description" content="Voxel Isle - a tiny Minecraft-style survival sandbox with mining, building and crafting." />
+  <title>Voxel Isle - Voxel Survival</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%2313211d'/%3E%3Cpath d='M16 4l10 5.8v11.6L16 27 6 21.4V9.8z' fill='%23a8e063'/%3E%3Cpath d='M6 9.8l10 5.8 10-5.8M16 15.6V27' fill='none' stroke='%235c9d39' stroke-width='2'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" aria-label="Voxel world"></canvas>
+    <div id="scene-shade"></div>
+    <div id="top-glow"></div>
+
+    <header id="topbar">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span class="brand-name">VOXEL ISLE</span>
+        <span class="brand-tag">SURVIVAL SANDBOX</span>
+      </div>
+      <div class="status">
+        <div class="status-item"><span class="status-label">DAY</span><span id="clock">08:24</span></div>
+        <div class="status-item"><span class="status-label">FPS</span><span id="fps">--</span></div>
+        <div class="status-item status-coords"><span class="status-label">POS</span><span id="coords">0 / 0 / 0</span></div>
+      </div>
+    </header>
+
+    <div id="crosshair" aria-hidden="true">
+      <span></span><span></span>
+    </div>
+    <div id="target-name"></div>
+
+    <div id="hud-bottom">
+      <div id="vitals">
+        <div class="vital">
+          <span class="vital-label">HEALTH</span>
+          <div class="segments" id="health-bar"></div>
+        </div>
+        <div class="vital">
+          <span class="vital-label">HUNGER</span>
+          <div class="segments hunger" id="hunger-bar"></div>
+        </div>
+      </div>
+      <div id="hotbar" role="toolbar" aria-label="Hotbar"></div>
+      <div id="controls-hint">
+        <span><b>WASD</b> move</span>
+        <span><b>SPACE</b> jump</span>
+        <span><b>LMB</b> mine</span>
+        <span><b>RMB</b> place</span>
+        <span><b>E</b> inventory</span>
+      </div>
+    </div>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <section id="inventory" class="overlay-panel hidden" aria-label="Inventory and crafting">
+      <div class="panel-frame">
+        <header class="panel-head">
+          <div>
+            <p class="eyebrow">SURVIVAL KIT</p>
+            <h2>Inventory &amp; Crafting</h2>
+          </div>
+          <button id="inventory-close" class="icon-button" aria-label="Close inventory">ESC</button>
+        </header>
+        <div class="panel-body">
+          <div class="inventory-column">
+            <div class="section-head">
+              <span>Backpack</span>
+              <span class="muted" id="inventory-count">0 / 36 slots</span>
+            </div>
+            <div id="inventory-grid" class="inventory-grid"></div>
+            <div id="item-detail" class="item-detail">
+              <span class="detail-icon"></span>
+              <div><strong id="detail-name">Select an item</strong><p id="detail-text">Mine blocks to fill your pack.</p></div>
+            </div>
+          </div>
+          <div class="crafting-column">
+            <div class="section-head">
+              <span>Crafting</span>
+              <span class="muted">2x2 + 3x3</span>
+            </div>
+            <div id="recipe-list" class="recipe-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="start-screen" class="start-screen">
+      <div class="start-copy">
+        <p class="kicker"><span></span> A TINY VOXEL SURVIVAL SANDBOX</p>
+        <h1>VOXEL<br /><em>ISLE</em></h1>
+        <p class="lede">Mine the island. Craft your tools. Build a shelter before the sun goes down.</p>
+        <div class="feature-row">
+          <div class="feature"><span class="feature-number">01</span><strong>Gather</strong><p>Punch trees, dig stone, find coal and iron.</p></div>
+          <div class="feature"><span class="feature-number">02</span><strong>Craft</strong><p>Turn raw blocks into tools, torches and tables.</p></div>
+          <div class="feature"><span class="feature-number">03</span><strong>Survive</strong><p>Watch your health and hunger through the night.</p></div>
+        </div>
+        <div class="start-controls">
+          <span class="key">WASD</span> move
+          <span class="key">SPACE</span> jump
+          <span class="key">LMB</span> mine
+          <span class="key">RMB</span> place
+          <span class="key">E</span> craft
+        </div>
+        <div class="start-actions">
+          <button id="start-button" class="primary-button"><span>Start Game</span></button>
+          <button id="reset-button" class="ghost-button">New Island</button>
+        </div>
+        <div class="seed-row">
+          <label for="seed-input">WORLD SEED</label>
+          <input id="seed-input" type="text" inputmode="numeric" value="1337" autocomplete="off" spellcheck="false" />
+          <span class="seed-hint">same seed, same island</span>
+        </div>
+        <p id="save-hint" class="save-hint">A fresh island awaits.</p>
+      </div>
+      <div class="start-badge">
+        <span class="badge-line"></span>
+        <p>PROCEDURAL WORLD</p>
+        <strong>48 x 32 x 48</strong>
+        <span class="badge-line"></span>
+      </div>
+    </section>
+
+    <section id="death-screen" class="death-screen hidden">
+      <p class="eyebrow">THE ISLAND WON THIS TIME</p>
+      <h2>You fainted.</h2>
+      <p>Respawn at the shore and keep building.</p>
+      <button id="respawn-button" class="primary-button"><span>Respawn</span></button>
+    </section>
+
+    <div id="loading" class="loading">
+      <div class="loading-mark"><span></span><span></span><span></span></div>
+      <p>Generating island...</p>
+    </div>
+
+    <div id="pause-hint" class="pause-hint hidden">Click the world to capture the mouse</div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
