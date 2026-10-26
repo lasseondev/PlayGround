@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#071325">
+<title>STORMFALL — Build Royale</title>
+<meta name="description" content="Stormfall is a fast, fan-made browser battle royale. Drop in, loot up, build cover, and outlast the storm.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23071325'/%3E%3Cpath d='M13 47 32 12l19 35h-9l-4-8H26l-4 8z' fill='%23ffd447'/%3E%3Cpath d='M28 33h8l-4-8z' fill='%23071325'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">
+  { "imports": { "three": "./vendor/three.module.js" } }
+</script>
+</head>
+<body>
+<div id="game-shell">
+  <canvas id="scene" aria-label="Stormfall game world"></canvas>
+
+  <div id="menu-atmosphere"></div>
+  <div id="storm-vignette"></div>
+  <div id="damage-flash"></div>
+  <div id="fade-layer"></div>
+
+  <div id="hud" class="inactive">
+    <div id="top-hud">
+      <div class="top-pill alive-pill" id="alive-pill">
+        <span class="alive-icon"></span>
+        <span><b id="alive-count">20</b><small>ALIVE</small></span>
+      </div>
+      <div class="top-pill storm-pill" id="storm-pill">
+        <span class="storm-icon"></span>
+        <span><b id="storm-time">1:30</b><small id="storm-label">STORM SHRINKING IN</small></span>
+      </div>
+    </div>
+
+    <div id="compass-wrap">
+      <div id="compass-labels"></div>
+      <div id="compass-ticks"></div>
+      <div id="compass-needle"></div>
+    </div>
+
+    <div id="minimap-panel">
+      <canvas id="minimap" width="360" height="360"></canvas>
+      <div class="map-ring"></div>
+      <div id="map-coords">N 00 • E 00</div>
+    </div>
+
+    <div id="killfeed"></div>
+
+    <div id="location-banner"><strong id="location-name">MOSSY MILL</strong><span id="location-sub">SECTOR 04</span></div>
+
+    <div id="build-indicator"><span></span>BUILD MODE</div>
+
+    <div id="crosshair">
+      <i class="ch ch-t"></i><i class="ch ch-r"></i><i class="ch ch-b"></i><i class="ch ch-l"></i>
+      <i class="ch-dot"></i>
+      <div id="hitmarker"><i></i><i></i><i></i><i></i></div>
+    </div>
+
+    <div id="action-prompt"><kbd>E</kbd><span id="prompt-text">OPEN CHEST</span></div>
+    <div id="reload-indicator"><span></span><b>RELOADING</b></div>
+
+    <div id="bottom-hud">
+      <div id="vitals">
+        <div class="stat-row shield-row">
+          <span class="stat-label">SHIELD</span>
+          <div class="bar"><i id="shield-fill"></i><em></em></div>
+          <b id="shield-value">0</b>
+        </div>
+        <div class="stat-row health-row">
+          <span class="stat-label">HEALTH</span>
+          <div class="bar"><i id="health-fill"></i><em></em></div>
+          <b id="health-value">100</b>
+        </div>
+        <div id="player-meta"><span id="player-name">YOU</span><span id="elim-count">0 ELIMS</span></div>
+      </div>
+
+      <div id="loadout">
+        <div id="build-panel">
+          <div class="panel-head"><span>BUILD</span><small>Z X C • R MATERIAL</small></div>
+          <div id="build-pieces">
+            <button class="build-piece selected" data-piece="wall"><kbd>Z</kbd><i class="piece-icon wall-icon"></i><span>WALL</span></button>
+            <button class="build-piece" data-piece="floor"><kbd>X</kbd><i class="piece-icon floor-icon"></i><span>FLOOR</span></button>
+            <button class="build-piece" data-piece="ramp"><kbd>C</kbd><i class="piece-icon ramp-icon"></i><span>RAMP</span></button>
+          </div>
+        </div>
+
+        <div id="weapon-panel">
+          <div class="slot" data-slot="1">
+            <span class="slot-key">1</span>
+            <div class="slot-art pickaxe-art"></div>
+            <div class="slot-meta"><b>PICKAXE</b><small>HARVEST</small></div>
+            <span class="slot-ammo">∞</span>
+          </div>
+          <div class="slot selected" data-slot="2">
+            <span class="slot-key">2</span>
+            <div class="slot-art ar-art"></div>
+            <div class="slot-meta"><b>RIFLE</b><small class="rarity-u">UNCOMMON</small></div>
+            <span class="slot-ammo"><b id="ammo-ar">30</b><small id="reserve-ar">90</small></span>
+          </div>
+          <div class="slot locked" data-slot="3">
+            <span class="slot-key">3</span>
+            <div class="slot-art shotgun-art"></div>
+            <div class="slot-meta"><b>PUMP</b><small>LOCKED</small></div>
+            <span class="slot-ammo">—</span>
+          </div>
+          <div class="slot locked" data-slot="4">
+            <span class="slot-key">4</span>
+            <div class="slot-art smg-art"></div>
+            <div class="slot-meta"><b>SMG</b><small>LOCKED</small></div>
+            <span class="slot-ammo">—</span>
+          </div>
+        </div>
+
+        <div id="materials">
+          <div class="mat-chip selected" data-mat="wood">
+            <i class="mat-icon wood"></i><div><small>WOOD</small><b id="wood-count">120</b></div>
+          </div>
+          <div class="mat-chip" data-mat="brick">
+            <i class="mat-icon brick"></i><div><small>BRICK</small><b id="brick-count">60</b></div>
+          </div>
+          <div class="mat-chip" data-mat="metal">
+            <i class="mat-icon metal"></i><div><small>METAL</small><b id="metal-count">30</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toasts"></div>
+    <div id="damage-numbers"></div>
+    <div id="damage-arrows"></div>
+    <div id="storm-warning"><span>⚠</span> STORM DAMAGE</div>
+    <div id="build-hint"><kbd>Q</kbd> BUILD COVER</div>
+  </div>
+
+  <div id="start-screen">
+    <div class="start-panel">
+      <div class="brand-row">
+        <span class="season-chip">SEASON 01</span>
+        <span class="mode-chip">SOLO</span>
+        <span class="player-chip">20 PLAYERS</span>
+      </div>
+      <h1 class="logo"><span class="logo-storm">STORM</span><span class="logo-fall">FALL</span></h1>
+      <div class="logo-sub"><span></span>BATTLE ROYALE<span></span></div>
+      <p class="hook">Twenty drop. One leaves. Build your way to <em>Victory Royale.</em></p>
+
+      <button id="start-btn" type="button" aria-label="Start game">
+        <span class="btn-glow"></span>
+        <span class="btn-main">START GAME</span>
+        <span class="btn-sub">SOLO • DROP IN</span>
+      </button>
+
+      <div class="controls-grid">
+        <div class="control"><kbd>WASD</kbd><span>MOVE</span></div>
+        <div class="control"><kbd>MOUSE</kbd><span>AIM / FIRE</span></div>
+        <div class="control"><kbd>Q</kbd><span>BUILD MODE</span></div>
+        <div class="control"><kbd>Z X C</kbd><span>WALL / FLOOR / RAMP</span></div>
+        <div class="control"><kbd>SPACE</kbd><span>JUMP</span></div>
+        <div class="control"><kbd>E</kbd><span>OPEN CHEST</span></div>
+        <div class="control"><kbd>1–4</kbd><span>WEAPONS</span></div>
+        <div class="control"><kbd>R</kbd><span>RELOAD / MATERIAL</span></div>
+      </div>
+      <div class="start-foot">Fan-made browser battle royale. No downloads. Just drop in.</div>
+    </div>
+
+    <div class="start-side">
+      <div class="side-rail">
+        <div class="side-step"><b>01</b><span>DROP</span></div>
+        <div class="side-step"><b>02</b><span>BUILD</span></div>
+        <div class="side-step"><b>03</b><span>SURVIVE</span></div>
+      </div>
+      <div class="side-note"><span class="live-dot"></span> THE STORM IS CLOSING</div>
+    </div>
+  </div>
+
+  <div id="pause-screen" class="overlay-screen hidden">
+    <div class="overlay-card">
+      <div class="eyebrow">MATCH PAUSED</div>
+      <h2>HOLD YOUR GROUND</h2>
+      <p>The storm doesn't wait. Get back in the fight.</p>
+      <div class="pause-controls">
+        <span><kbd>WASD</kbd> Move</span><span><kbd>Q</kbd> Build</span><span><kbd>LMB</kbd> Fire</span><span><kbd>E</kbd> Loot</span>
+      </div>
+      <button id="resume-btn" class="wide-btn" type="button">RESUME MATCH</button>
+      <button id="quit-btn" class="text-btn" type="button">QUIT TO LOBBY</button>
+      <div class="audio-row"><button id="mute-btn-pause" class="text-btn small" type="button">SOUND: ON</button></div>
+    </div>
+  </div>
+
+  <div id="end-screen" class="overlay-screen hidden">
+    <div class="overlay-card end-card">
+      <div class="eyebrow" id="end-eyebrow">MATCH COMPLETE</div>
+      <h2 id="end-title">VICTORY ROYALE</h2>
+      <div id="end-place">#1</div>
+      <div class="end-stats">
+        <div><b id="stat-elim">0</b><span>ELIMINATIONS</span></div>
+        <div><b id="stat-damage">0</b><span>DAMAGE DEALT</span></div>
+        <div><b id="stat-built">0</b><span>PIECES BUILT</span></div>
+        <div><b id="stat-time">0:00</b><span>SURVIVED</span></div>
+      </div>
+      <button id="again-btn" class="wide-btn gold" type="button">PLAY AGAIN</button>
+      <button id="lobby-btn" class="text-btn" type="button">RETURN TO LOBBY</button>
+    </div>
+  </div>
+
+  <div id="loading-screen">
+    <div class="loader-logo">STORM<span>FALL</span></div>
+    <div class="loader-bar"><i></i></div>
+    <div class="loader-text">ASSEMBLING THE ISLAND</div>
+  </div>
+
+  <div id="webgl-error" class="hidden"></div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
