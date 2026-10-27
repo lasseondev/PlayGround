@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#7ec8ef" />
+    <meta
+      name="description"
+      content="Angry Birds: Slingbird Saga — a hand-built slingshot physics game. Fling birds, smash forts, and pop every pig."
+    />
+    <title>Angry Birds — Slingbird Saga</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='34' r='27' fill='%23e22f28'/%3E%3Ccircle cx='23' cy='27' r='8' fill='%23fff8ee'/%3E%3Ccircle cx='41' cy='27' r='8' fill='%23fff8ee'/%3E%3Ccircle cx='24' cy='28' r='3.4' fill='%231a1a1a'/%3E%3Ccircle cx='40' cy='28' r='3.4' fill='%231a1a1a'/%3E%3Cpath d='M34 36l14 5-14 6z' fill='%23f6b52b'/%3E%3Cpath d='M12 20l12 5M52 20l-12 5' stroke='%234c120e' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+    <script type="module" crossorigin src="/assets/index-Bk1uOWAf.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Fqk6fps7.css">
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game" aria-label="Angry Birds slingshot game"></canvas>
+      <div id="vignette" aria-hidden="true"></div>
+
+      <header id="hud" class="hud hidden">
+        <div class="hud-left">
+          <button id="btn-pause" class="round-btn" aria-label="Pause game" title="Pause (P)">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="6" y="4" width="4.4" height="16" rx="1.2" />
+              <rect x="13.6" y="4" width="4.4" height="16" rx="1.2" />
+            </svg>
+          </button>
+          <div class="level-chip">
+            <span class="chip-label">LEVEL</span>
+            <span id="hud-level" class="chip-number">1</span>
+          </div>
+        </div>
+
+        <div class="score-box" aria-live="polite">
+          <span class="score-label">SCORE</span>
+          <span id="hud-score" class="score-value">0</span>
+        </div>
+
+        <div class="hud-right">
+          <div id="hud-birds" class="bird-count" aria-label="Birds remaining"></div>
+          <button id="btn-sound" class="round-btn" aria-label="Mute sound" title="Sound (M)">
+            <svg class="icon-sound" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 9.5v5h3.4L13 19V5L7.4 9.5H4z" />
+              <path class="wave" d="M16.2 8.4a5 5 0 0 1 0 7.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <path class="wave" d="M18.8 6.1a8.6 8.6 0 0 1 0 11.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <svg class="icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 9.5v5h3.4L13 19V5L7.4 9.5H4z" />
+              <path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div id="ability-hint" class="ability-hint hidden" aria-live="polite">
+        <span class="tap-ring"></span>
+        <span id="ability-text">TAP FOR ABILITY</span>
+      </div>
+
+      <section id="screen-title" class="screen title-screen">
+        <div class="title-scrim" aria-hidden="true"></div>
+        <div class="title-wrap">
+          <div class="logo-bird" aria-hidden="true">
+            <svg viewBox="0 0 260 260">
+              <defs>
+                <radialGradient id="birdBody" cx="36%" cy="28%" r="78%">
+                  <stop offset="0%" stop-color="#ff7b62" />
+                  <stop offset="46%" stop-color="#ed3a2e" />
+                  <stop offset="100%" stop-color="#a80f18" />
+                </radialGradient>
+                <linearGradient id="birdBelly" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#ffe9c4" />
+                  <stop offset="100%" stop-color="#f5c88b" />
+                </linearGradient>
+                <linearGradient id="beakGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#ffdc66" />
+                  <stop offset="100%" stop-color="#f39a17" />
+                </linearGradient>
+              </defs>
+              <g transform="translate(32 24)">
+                <path d="M30 156c-18 5-31 22-33 42 18-3 35-12 48-26z" fill="#8f0c15" />
+                <path d="M24 44C4 58-4 92 6 120c8 24 26 38 44 38 32 0 56-26 56-58S90 26 62 26c-15 0-28 6-38 18z" fill="url(#birdBody)" />
+                <path d="M62 26c-15 0-28 6-38 18 13 0 24 5 30 15 8 14 7 30 3 45 17-4 30-19 30-40 0-21-11-38-25-38z" fill="#ff6a57" opacity=".48" />
+                <path d="M35 150c11 8 27 12 42 8 8-2 14-6 18-12-13-5-28-7-42-4-8 2-14 5-18 8z" fill="url(#birdBelly)" />
+                <path d="M17 61c8-8 18-12 28-12 12 0 22 5 29 14" fill="none" stroke="#5c0710" stroke-width="10" stroke-linecap="round" />
+                <ellipse cx="40" cy="77" rx="13" ry="15" fill="#fff8ee" />
+                <ellipse cx="82" cy="77" rx="13" ry="15" fill="#fff8ee" />
+                <circle cx="44" cy="79" r="6.4" fill="#24130f" />
+                <circle cx="78" cy="79" r="6.4" fill="#24130f" />
+                <circle cx="46" cy="76" r="2.1" fill="#fff" />
+                <circle cx="80" cy="76" r="2.1" fill="#fff" />
+                <path d="M26 58l25 4M95 61L73 65" stroke="#4a0610" stroke-width="8" stroke-linecap="round" />
+                <path d="M58 90l38 8-38 15 8-13z" fill="url(#beakGrad)" stroke="#b56c0a" stroke-width="3" stroke-linejoin="round" />
+                <path d="M30 178l-8 20 18-8zM52 182l2 22 12-16z" fill="#f5c88b" opacity=".9" />
+              </g>
+            </svg>
+          </div>
+
+          <h1 class="logo" aria-label="Angry Birds">
+            <span class="logo-line logo-angry">ANGRY</span>
+            <span class="logo-line logo-birds">BIRDS</span>
+          </h1>
+          <p class="tagline">Slingbird Saga</p>
+          <p class="tagline-sub">Fling. Smash. Pop every pig.</p>
+
+          <div class="title-actions">
+            <button id="btn-play" class="btn btn-play" aria-label="Play">
+              <span>PLAY</span>
+              <small>Adventure</small>
+            </button>
+            <button id="btn-levels" class="btn btn-ghost">LEVELS</button>
+          </div>
+
+          <div class="best-line">
+            <span class="best-label">BEST</span>
+            <span id="best-score">0</span>
+          </div>
+        </div>
+        <div class="rotate-hint">Turn your device for a wider view</div>
+      </section>
+
+      <section id="screen-levels" class="screen levels-screen hidden">
+        <div class="levels-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">THE FLOCK AWAITS</p>
+              <h2>CHOOSE A LEVEL</h2>
+            </div>
+            <button id="btn-levels-back" class="round-btn round-btn-light" aria-label="Back to title">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14.5 4.5L7 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+          <div id="level-grid" class="level-grid"></div>
+          <p class="levels-foot">Earn stars by clearing every pig with birds to spare.</p>
+        </div>
+      </section>
+
+      <div id="modal-root" class="modal-root hidden" role="dialog" aria-modal="true">
+        <div id="modal-card" class="modal-card"></div>
+      </div>
+
+      <div id="toast" class="toast hidden" role="status"></div>
+
+      <div id="boot" class="boot">
+        <div class="boot-bird"></div>
+        <p>Warming up the slingshot…</p>
+      </div>
+    </div>
+  </body>
+</html>

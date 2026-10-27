@@ -1,0 +1,396 @@
+export const GROUND_Y = 880;
+export const WORLD_WIDTH = 1900;
+export const WORLD_HEIGHT = 1080;
+
+export const SLINGSHOT = {
+  x: 318,
+  anchorX: 318,
+  anchorY: 690,
+  baseY: GROUND_Y,
+  maxPull: 168,
+  minSpeed: 7,
+  maxSpeed: 30,
+  readiness: 78,
+};
+
+export const BIRDS = {
+  red: {
+    name: "Red",
+    radius: 27,
+    density: 0.0042,
+    restitution: 0.42,
+    friction: 0.45,
+    frictionAir: 0.008,
+    ability: null,
+    abilityLabel: "",
+    color: "#e22f28",
+  },
+  chuck: {
+    name: "Chuck",
+    radius: 24,
+    density: 0.0032,
+    restitution: 0.34,
+    friction: 0.4,
+    frictionAir: 0.006,
+    ability: "boost",
+    abilityLabel: "TAP TO DASH",
+    color: "#f4c418",
+  },
+  bomb: {
+    name: "Bomb",
+    radius: 30,
+    density: 0.0072,
+    restitution: 0.2,
+    friction: 0.6,
+    frictionAir: 0.008,
+    ability: "explode",
+    abilityLabel: "TAP TO DETONATE",
+    color: "#2f2f39",
+  },
+  blue: {
+    name: "Blues",
+    radius: 21,
+    density: 0.0026,
+    restitution: 0.5,
+    friction: 0.38,
+    frictionAir: 0.007,
+    ability: "split",
+    abilityLabel: "TAP TO SPLIT",
+    color: "#3aa9e0",
+  },
+};
+
+export const MATERIALS = {
+  wood: {
+    hp: 118,
+    density: 0.0016,
+    friction: 0.82,
+    restitution: 0.06,
+    base: "#cf8b3d",
+    light: "#efbc72",
+    dark: "#8c5220",
+    edge: "#613713",
+    debris: ["#d99a4c", "#b97430", "#8c5220", "#f0c27c"],
+  },
+  ice: {
+    hp: 64,
+    density: 0.00118,
+    friction: 0.28,
+    restitution: 0.12,
+    base: "#a8e3f7",
+    light: "#e5fbff",
+    dark: "#5aafd3",
+    edge: "#3d87a8",
+    debris: ["#c7f1ff", "#8fd6f1", "#5aa9c9", "#eafcff"],
+  },
+  stone: {
+    hp: 430,
+    density: 0.0034,
+    friction: 0.9,
+    restitution: 0.03,
+    base: "#9a9aa4",
+    light: "#c8c9d1",
+    dark: "#686973",
+    edge: "#4a4b54",
+    debris: ["#b6b7c0", "#8b8c96", "#686973", "#d8d9df"],
+  },
+  tnt: {
+    hp: 40,
+    density: 0.0022,
+    friction: 0.7,
+    restitution: 0.1,
+    base: "#d94b2b",
+    light: "#ff8460",
+    dark: "#932313",
+    edge: "#5e1409",
+    debris: ["#ffb347", "#ff6b35", "#d94b2b", "#7a1c0d"],
+  },
+};
+
+export const THEMES = {
+  day: {
+    skyTop: "#43a8da",
+    skyMid: "#8fd6f4",
+    skyBottom: "#d9f2ff",
+    sun: "#fff2b0",
+    sunGlow: "rgba(255, 244, 184, 0.55)",
+    cloud: "#ffffff",
+    cloudShade: "#dcefff",
+    hillFar: "#9ed7b0",
+    hillMid: "#79c184",
+    hillNear: "#57a65d",
+    treeFar: "#4b9558",
+    treeNear: "#3d8449",
+    groundTop: "#85cf54",
+    groundTopLight: "#b5e87a",
+    groundSide: "#b98644",
+    groundDeep: "#7a5126",
+    haze: "rgba(255, 252, 230, 0.2)",
+    ambient: "#fff6d8",
+  },
+  sunset: {
+    skyTop: "#5763a8",
+    skyMid: "#f38a6c",
+    skyBottom: "#ffd79a",
+    sun: "#ffd36b",
+    sunGlow: "rgba(255, 167, 94, 0.55)",
+    cloud: "#ffe0c0",
+    cloudShade: "#d98d86",
+    hillFar: "#b08a9b",
+    hillMid: "#8d7a70",
+    hillNear: "#6b6b4e",
+    treeFar: "#6d6648",
+    treeNear: "#514d39",
+    groundTop: "#c3a25c",
+    groundTopLight: "#e4c77d",
+    groundSide: "#a7723c",
+    groundDeep: "#69401f",
+    haze: "rgba(255, 194, 128, 0.24)",
+    ambient: "#ffd9a1",
+  },
+  night: {
+    skyTop: "#172246",
+    skyMid: "#3a5688",
+    skyBottom: "#7b96b9",
+    sun: "#e8f0ff",
+    sunGlow: "rgba(192, 218, 255, 0.4)",
+    cloud: "#b9c8e0",
+    cloudShade: "#8497b8",
+    hillFar: "#425b70",
+    hillMid: "#33505a",
+    hillNear: "#29454a",
+    treeFar: "#2c474c",
+    treeNear: "#203a3f",
+    groundTop: "#4c8b4e",
+    groundTopLight: "#72ad65",
+    groundSide: "#785838",
+    groundDeep: "#4b3523",
+    haze: "rgba(150, 190, 255, 0.14)",
+    ambient: "#cfe2ff",
+  },
+};
+
+const block = (x, bottom, w, h, material, extra = {}) => ({
+  x,
+  y: bottom - h / 2,
+  w,
+  h,
+  material,
+  angle: extra.angle || 0,
+  ...(extra.scale ? { scale: extra.scale } : {}),
+  ...(extra.tag ? { tag: extra.tag } : {}),
+});
+
+const pig = (x, bottom, radius = 29, extra = {}) => ({
+  x,
+  y: bottom - radius,
+  r: radius,
+  hat: extra.hat || null,
+  ...(extra.name ? { name: extra.name } : {}),
+});
+
+const tnt = (x, bottom, size = 46) => ({
+  x,
+  y: bottom - size / 2,
+  w: size,
+  h: size,
+  material: "tnt",
+  angle: 0,
+});
+
+export const LEVELS = [
+  {
+    id: 1,
+    name: "Piggy Picnic",
+    subtitle: "A quiet lunch. Ruined.",
+    theme: "day",
+    birds: ["red", "red", "red"],
+    stars: [15000, 26500, 35000],
+    slingshot: { x: SLINGSHOT.x, bottom: GROUND_Y },
+    blocks: [
+      block(1160, GROUND_Y, 34, 170, "wood"),
+      block(1300, GROUND_Y, 34, 170, "wood"),
+      block(1230, GROUND_Y - 170, 196, 28, "wood", { tag: "roof" }),
+      block(1086, GROUND_Y, 44, 44, "ice"),
+      block(1374, GROUND_Y, 44, 44, "wood"),
+      block(1284, GROUND_Y - 198, 40, 24, "ice", { tag: "vent" }),
+    ],
+    pigs: [pig(1230, GROUND_Y - 198, 30), pig(1230, GROUND_Y, 30)],
+    decor: [
+      { type: "tree", x: 760, scale: 1.1, layer: 0.55 },
+      { type: "bush", x: 980, scale: 1, layer: 0.6 },
+      { type: "bush", x: 1510, scale: 0.8, layer: 0.6 },
+      { type: "tree", x: 1650, scale: 0.8, layer: 0.5 },
+      { type: "flowers", x: 590, scale: 1 },
+      { type: "flowers", x: 1460, scale: 0.8 },
+    ],
+  },
+  {
+    id: 2,
+    name: "Ice Ice Piggy",
+    subtitle: "Slippery when smashed.",
+    theme: "day",
+    birds: ["red", "chuck", "red", "blue"],
+    stars: [22000, 38000, 52000],
+    slingshot: { x: SLINGSHOT.x, bottom: GROUND_Y },
+    blocks: [
+      block(1110, GROUND_Y, 30, 190, "ice"),
+      block(1240, GROUND_Y, 30, 190, "ice"),
+      block(1175, GROUND_Y - 190, 180, 26, "wood", { tag: "roof" }),
+      block(1370, GROUND_Y, 28, 150, "ice"),
+      block(1470, GROUND_Y, 28, 150, "ice"),
+      block(1420, GROUND_Y - 150, 152, 24, "wood"),
+      block(1110, GROUND_Y - 216, 46, 36, "ice", { tag: "shelf" }),
+      tnt(1310, GROUND_Y, 44),
+    ],
+    pigs: [
+      pig(1175, GROUND_Y - 216, 30),
+      pig(1175, GROUND_Y, 30),
+      pig(1420, GROUND_Y - 174, 28, { hat: "leaf" }),
+    ],
+    decor: [
+      { type: "tree", x: 655, scale: 0.9, layer: 0.5 },
+      { type: "bush", x: 840, scale: 0.9, layer: 0.55 },
+      { type: "bush", x: 1570, scale: 1.1, layer: 0.6 },
+      { type: "tree", x: 1710, scale: 1.2, layer: 0.45 },
+      { type: "flowers", x: 950, scale: 0.9 },
+      { type: "flowers", x: 1530, scale: 1 },
+    ],
+  },
+  {
+    id: 3,
+    name: "Stonehenge Hogs",
+    subtitle: "Bring something with a beak.",
+    theme: "day",
+    birds: ["red", "bomb", "chuck", "red"],
+    stars: [25000, 43000, 60000],
+    slingshot: { x: SLINGSHOT.x, bottom: GROUND_Y },
+    blocks: [
+      block(1075, GROUND_Y, 38, 210, "stone"),
+      block(1195, GROUND_Y, 38, 210, "stone"),
+      block(1135, GROUND_Y - 210, 172, 32, "stone", { tag: "roof" }),
+      block(1190, GROUND_Y - 242, 42, 40, "wood"),
+      block(1288, GROUND_Y, 34, 120, "stone"),
+      block(1398, GROUND_Y, 34, 120, "stone"),
+      block(1343, GROUND_Y - 120, 150, 26, "wood"),
+      block(1490, GROUND_Y, 38, 90, "wood"),
+      tnt(1245, GROUND_Y, 44),
+    ],
+    pigs: [
+      pig(1135, GROUND_Y - 242, 30, { hat: "helmet" }),
+      pig(1343, GROUND_Y - 146, 27),
+      pig(1343, GROUND_Y, 30),
+    ],
+    decor: [
+      { type: "rock", x: 720, scale: 1.2 },
+      { type: "rock", x: 930, scale: 0.7 },
+      { type: "bush", x: 1040, scale: 0.8, layer: 0.6 },
+      { type: "tree", x: 1610, scale: 0.9, layer: 0.5 },
+      { type: "bush", x: 1740, scale: 1.1, layer: 0.58 },
+      { type: "flowers", x: 600, scale: 0.7 },
+    ],
+  },
+  {
+    id: 4,
+    name: "Tower of Oinks",
+    subtitle: "The higher they stack…",
+    theme: "day",
+    birds: ["chuck", "blue", "bomb", "red", "red"],
+    stars: [32000, 52000, 72000],
+    slingshot: { x: SLINGSHOT.x, bottom: GROUND_Y },
+    blocks: [
+      block(1090, GROUND_Y, 30, 180, "ice"),
+      block(1210, GROUND_Y, 30, 180, "ice"),
+      block(1150, GROUND_Y - 180, 172, 26, "wood"),
+      block(1100, GROUND_Y - 206, 26, 120, "wood"),
+      block(1200, GROUND_Y - 206, 26, 120, "wood"),
+      block(1150, GROUND_Y - 326, 160, 24, "wood", { tag: "roof" }),
+      block(1205, GROUND_Y - 350, 42, 36, "ice"),
+      block(1360, GROUND_Y, 36, 140, "stone"),
+      block(1470, GROUND_Y, 36, 140, "stone"),
+      block(1415, GROUND_Y - 140, 150, 28, "stone"),
+      block(1415, GROUND_Y - 168, 48, 30, "ice"),
+      block(1265, GROUND_Y, 40, 60, "wood"),
+      tnt(1318, GROUND_Y, 46),
+    ],
+    pigs: [
+      pig(1150, GROUND_Y - 206, 29, { hat: "helmet" }),
+      pig(1150, GROUND_Y - 350, 27),
+      pig(1150, GROUND_Y, 30),
+      pig(1415, GROUND_Y - 198, 28, { hat: "helmet" }),
+    ],
+    decor: [
+      { type: "tree", x: 620, scale: 1, layer: 0.5 },
+      { type: "tree", x: 820, scale: 0.7, layer: 0.44 },
+      { type: "bush", x: 1560, scale: 0.9, layer: 0.6 },
+      { type: "bush", x: 1730, scale: 1.2, layer: 0.55 },
+      { type: "flowers", x: 980, scale: 1 },
+      { type: "flowers", x: 1510, scale: 0.8 },
+    ],
+  },
+  {
+    id: 5,
+    name: "Sunset Citadel",
+    subtitle: "The last stand of the green.",
+    theme: "sunset",
+    birds: ["red", "chuck", "bomb", "blue", "bomb"],
+    stars: [42000, 66000, 90000],
+    slingshot: { x: SLINGSHOT.x, bottom: GROUND_Y },
+    blocks: [
+      block(1070, GROUND_Y, 40, 240, "stone"),
+      block(1210, GROUND_Y, 40, 240, "stone"),
+      block(1140, GROUND_Y - 240, 192, 34, "stone", { tag: "roof" }),
+      block(1100, GROUND_Y - 274, 28, 90, "stone"),
+      block(1180, GROUND_Y - 274, 28, 90, "stone"),
+      block(1140, GROUND_Y - 364, 146, 22, "wood", { tag: "roof" }),
+      block(1140, GROUND_Y - 386, 38, 34, "ice"),
+      block(1330, GROUND_Y, 36, 180, "stone"),
+      block(1440, GROUND_Y, 36, 180, "stone"),
+      block(1385, GROUND_Y - 180, 148, 24, "ice"),
+      block(1350, GROUND_Y - 204, 24, 80, "ice"),
+      block(1420, GROUND_Y - 204, 24, 80, "ice"),
+      block(1385, GROUND_Y - 284, 118, 20, "wood", { tag: "roof" }),
+      block(1385, GROUND_Y - 304, 44, 40, "wood"),
+      tnt(1274, GROUND_Y, 46),
+      tnt(1298, GROUND_Y - 46, 40),
+    ],
+    pigs: [
+      pig(1140, GROUND_Y - 274, 29, { hat: "helmet" }),
+      pig(1140, GROUND_Y - 420, 26, { hat: "crown", name: "King Pig" }),
+      pig(1385, GROUND_Y - 204, 27, { hat: "leaf" }),
+      pig(1385, GROUND_Y - 344, 25),
+      pig(1140, GROUND_Y, 31, { hat: "helmet" }),
+    ],
+    decor: [
+      { type: "tree", x: 610, scale: 1.2, layer: 0.5 },
+      { type: "tree", x: 780, scale: 0.8, layer: 0.44 },
+      { type: "bush", x: 930, scale: 1, layer: 0.58 },
+      { type: "bush", x: 1560, scale: 1, layer: 0.6 },
+      { type: "tree", x: 1710, scale: 1.25, layer: 0.46 },
+      { type: "rock", x: 1240, scale: 0.6 },
+      { type: "flowers", x: 500, scale: 0.9 },
+      { type: "flowers", x: 1630, scale: 0.8 },
+    ],
+  },
+];
+
+export function levelScoreStars(level, score) {
+  if (score >= level.stars[2]) return 3;
+  if (score >= level.stars[1]) return 2;
+  if (score >= level.stars[0]) return 1;
+  return score > 0 ? 1 : 0;
+}
+
+export function pigHealth(levelPig) {
+  const base = levelPig.r > 30 ? 52 : 42;
+  if (levelPig.hat === "helmet") return base * 2.1;
+  if (levelPig.hat === "crown") return base * 2.8;
+  return base;
+}
+
+export function blockHealth(blockData) {
+  const mat = MATERIALS[blockData.material];
+  const area = blockData.w * blockData.h;
+  const scale = Math.pow(area / 4200, 0.62);
+  return Math.max(28, mat.hp * Math.max(0.42, scale));
+}
