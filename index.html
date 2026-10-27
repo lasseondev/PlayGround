@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#05070b" />
+  <title>Mall of the Dead — Co-op Zombie Survival</title>
+  <meta name="description" content="Mall of the Dead — a co-op zombie survival FPS set in the abandoned Westgate Plaza." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230b0f14'/%3E%3Ctext x='32' y='43' font-family='Arial Black,Arial,sans-serif' font-size='26' font-weight='900' fill='%23ff9d2e' text-anchor='middle'%3EWG%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./styles.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js",
+        "three/addons/": "./vendor/addons/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="vignette"></div>
+  <div id="grain"></div>
+  <div id="scanlines"></div>
+
+  <section id="hud" class="hidden" aria-live="polite">
+    <div class="hud-top">
+      <div class="squad-panel glass">
+        <div class="panel-label"><span class="dot dot-cyan"></span> SQUAD LINK</div>
+        <div class="squad-member">
+          <div class="portrait p1"><span>01</span></div>
+          <div class="member-data">
+            <div class="member-name">RIVERA <em>YOU</em></div>
+            <div class="meter hp-meter"><i id="hp-fill"></i></div>
+            <div class="meter stamina-meter"><i id="stamina-fill"></i></div>
+          </div>
+          <div class="hp-number" id="hp-number">100</div>
+        </div>
+        <div class="squad-member">
+          <div class="portrait p2"><span>02</span></div>
+          <div class="member-data">
+            <div class="member-name">NOVA <em id="nova-state">AI</em></div>
+            <div class="meter ally-meter"><i id="ally-fill"></i></div>
+            <div class="ally-sub" id="ally-sub">ONLINE · OVERWATCH</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wave-panel">
+        <div class="wave-label" id="wave-label">WAVE 01</div>
+        <div class="wave-count"><span id="zombies-left">00</span><small>HOSTILES</small></div>
+        <div class="wave-progress"><i id="wave-progress-fill"></i></div>
+      </div>
+
+      <div class="right-stack">
+        <div class="score-panel glass">
+          <div class="score-row"><span>SCORE</span><b id="score">000000</b></div>
+          <div class="score-row"><span>STREAK</span><b id="streak">x1.0</b></div>
+          <div class="score-row"><span>BEST</span><b id="best">000000</b></div>
+        </div>
+        <div class="minimap-wrap glass">
+          <canvas id="minimap" width="200" height="200"></canvas>
+          <div class="minimap-ring"></div>
+          <div class="minimap-label">WESTGATE · LEVEL 1</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="killfeed" class="killfeed"></div>
+
+    <div class="hud-bottom">
+      <div class="left-bottom">
+        <div class="nade-panel glass">
+          <div class="nade-icon">◉</div>
+          <div><div class="nade-label">FRAG</div><b id="nade-count">3</b></div>
+        </div>
+        <div class="status-line" id="status-line">SECTOR SECURE</div>
+      </div>
+
+      <div class="objective" id="objective">
+        <span class="obj-kicker">OBJECTIVE</span>
+        <span id="objective-text">HOLD THE ATRIUM</span>
+      </div>
+
+      <div class="ammo-panel">
+        <div class="weapon-name" id="weapon-name">M4 VANGUARD</div>
+        <div class="ammo-row">
+          <b id="ammo-mag">30</b>
+          <span class="ammo-divider">/</span>
+          <span id="ammo-reserve">180</span>
+        </div>
+        <div class="reload-bar"><i id="reload-fill"></i></div>
+        <div class="weapon-slots">
+          <span class="slot active" id="slot-1">1 · RIFLE</span>
+          <span class="slot" id="slot-2">2 · BREACHER</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="crosshair" class="crosshair">
+      <i class="ch ch-t"></i><i class="ch ch-b"></i><i class="ch ch-l"></i><i class="ch ch-r"></i>
+      <i class="ch-dot"></i>
+    </div>
+    <div id="hitmarker" class="hitmarker"><i></i><i></i><i></i><i></i></div>
+    <div id="damage-flash" class="damage-flash"></div>
+    <div id="low-health" class="low-health"></div>
+    <div id="banner" class="banner"><span id="banner-kicker"></span><b id="banner-title"></b><span id="banner-sub"></span></div>
+    <div id="subtitle" class="subtitle"><b id="speaker">NOVA</b><span id="subtitle-text"></span></div>
+    <div id="interact" class="interact hidden"><span id="interact-key">E</span><div><b id="interact-label">REVIVE NOVA</b><div class="interact-bar"><i id="interact-fill"></i></div></div></div>
+    <div id="downed" class="downed hidden"><b>DOWNED</b><span id="downed-sub">NOVA IS EN ROUTE</span></div>
+    <div class="hint-bar" id="hint-bar"><span><b>WASD</b> MOVE</span><span><b>SHIFT</b> SPRINT</span><span><b>R</b> RELOAD</span><span><b>G</b> FRAG</span><span><b>V</b> MELEE</span><span><b>E</b> REVIVE</span><span><b>ESC</b> PAUSE</span></div>
+  </section>
+
+  <section id="menu" class="menu">
+    <div class="menu-frame">
+      <header class="menu-top">
+        <div class="brandline"><span class="brand-mark">WG</span> WESTGATE PLAZA <em>SECURITY FEED 04</em></div>
+        <div class="menu-meta"><span class="live-dot"></span> LIVE · 03:17 AM · OCT 31</div>
+      </header>
+
+      <div class="menu-main">
+        <div class="menu-copy">
+          <div class="eyebrow"><span class="line"></span> CO-OP ZOMBIE SURVIVAL</div>
+          <h1 class="logo">MALL<span>OF THE</span>DEAD</h1>
+          <p class="tagline">The last sale was a bloodbath. Hold the atrium with your squad until extraction.</p>
+
+          <div class="deploy-row">
+            <button id="deploy" class="deploy-btn" aria-label="Start">
+              <span class="deploy-glow"></span>
+              <span class="deploy-label">DEPLOY</span>
+              <span class="deploy-sub">ENTER THE PLAZA</span>
+            </button>
+            <div class="deploy-note">
+              <span class="note-title">CLICK TO LOCK MOUSE</span>
+              <span class="note-sub">Recommended: headset · 1440p · fullscreen</span>
+            </div>
+          </div>
+
+          <div class="squad-line">
+            <div class="squad-chip"><i class="dot dot-cyan"></i> NOVA · AI SQUADMATE <span>ONLINE</span></div>
+            <div class="squad-chip ghost"><i class="dot dot-amber"></i> LOCAL SQUAD · 2/2</div>
+          </div>
+        </div>
+
+        <aside class="briefing glass">
+          <div class="briefing-head"><span>MISSION BRIEF</span><b>OP. LAST LIGHT</b></div>
+          <ul class="briefing-list">
+            <li><span>01</span><p><b>Hold the atrium.</b> Survive escalating waves of infected drawn to the noise.</p></li>
+            <li><span>02</span><p><b>Stay linked.</b> Nova can revive you. Revive Nova with <kbd>E</kbd> when she falls.</p></li>
+            <li><span>03</span><p><b>Scavenge.</b> Break contact, grab ammo drops, and use frags on the horde.</p></li>
+          </ul>
+          <div class="controls">
+            <div><kbd>W A S D</kbd><span>MOVE</span></div>
+            <div><kbd>MOUSE</kbd><span>AIM / FIRE</span></div>
+            <div><kbd>SHIFT</kbd><span>SPRINT</span></div>
+            <div><kbd>SPACE</kbd><span>JUMP</span></div>
+            <div><kbd>R</kbd><span>RELOAD</span></div>
+            <div><kbd>G</kbd><span>FRAG</span></div>
+            <div><kbd>V</kbd><span>MELEE</span></div>
+            <div><kbd>1 / 2</kbd><span>WEAPONS</span></div>
+          </div>
+          <div class="briefing-foot">WESTGATE SECURITY · CONTAINMENT FAILED · 47 CIVILIANS UNACCOUNTED FOR</div>
+        </aside>
+      </div>
+
+      <footer class="menu-foot">
+        <span>WESTGATE PLAZA · LEVEL 1 ATRIUM</span>
+        <span class="foot-center">CO-OP ZOMBIE SURVIVAL</span>
+        <span>BUILD 1.0.7 · SQUAD NET</span>
+      </footer>
+    </div>
+  </section>
+
+  <section id="pause" class="overlay hidden">
+    <div class="overlay-card">
+      <div class="overlay-kicker">SQUAD LINK SUSPENDED</div>
+      <h2>TACTICAL PAUSE</h2>
+      <p>The horde is still out there. Resume when ready.</p>
+      <button id="resume" class="btn-primary">RESUME</button>
+      <button id="quit" class="btn-ghost">ABANDON RUN</button>
+    </div>
+  </section>
+
+  <section id="gameover" class="overlay hidden">
+    <div class="overlay-card wide">
+      <div class="overlay-kicker" id="over-kicker">SIGNAL LOST</div>
+      <h2 id="over-title">YOU DIED</h2>
+      <p id="over-sub">The plaza claims another squad.</p>
+      <div class="stats-grid">
+        <div><span>WAVE REACHED</span><b id="stat-wave">01</b></div>
+        <div><span>ELIMINATIONS</span><b id="stat-kills">0</b></div>
+        <div><span>HEADSHOTS</span><b id="stat-heads">0</b></div>
+        <div><span>SCORE</span><b id="stat-score">0</b></div>
+      </div>
+      <button id="redeploy" class="btn-primary">REDEPLOY</button>
+    </div>
+  </section>
+
+  <div id="loading" class="loading"><div class="load-bar"><i></i></div><span>LINKING TO WESTGATE SECURITY GRID</span></div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
