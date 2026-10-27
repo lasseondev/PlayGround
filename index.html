@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#052b36" />
+    <meta
+      name="description"
+      content="Abyssal Blocks — Minecraft, but underwater. Dive into a procedural voxel reef, mine the seabed, build with coral and recover five sunken relics."
+    />
+    <title>Abyssal Blocks — Minecraft, but underwater</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23052b36'/%3E%3Cpath d='M10 42h44v12H10z' fill='%23e8c47c'/%3E%3Cpath d='M18 32h28v10H18z' fill='%234fd8c4'/%3E%3Cpath d='M26 22h12v10H26z' fill='%23ff8a6a'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene" aria-label="Underwater voxel reef"></canvas>
+
+      <div class="screen-fx" aria-hidden="true">
+        <div class="vignette"></div>
+        <div class="surface-glow"></div>
+        <div class="grain"></div>
+        <div class="drown" id="drown"></div>
+      </div>
+
+      <div id="hud" class="hud" aria-live="polite">
+        <div class="hud-left">
+          <div class="brand-mini">
+            <span class="brand-gem"></span>
+            <span>ABYSSAL BLOCKS</span>
+          </div>
+          <div class="gauge-card">
+            <div class="gauge-head">
+              <span class="gauge-label">DEPTH</span>
+              <span class="gauge-depth"><b id="depth">0.0</b><i>m</i></span>
+            </div>
+            <div class="air-row">
+              <span class="air-label">AIR</span>
+              <div class="air-track"><div class="air-fill" id="airFill"></div></div>
+              <span class="air-num" id="airNum">100</span>
+            </div>
+            <div class="zone-row">
+              <span id="zone">CORAL SHELF</span>
+              <span class="zone-temp">12°C</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <div class="relic-card">
+            <div class="relic-head">
+              <span>SUNKEN RELICS</span>
+              <b><span id="relicCount">0</span><i>/5</i></b>
+            </div>
+            <div class="relic-pips" id="relicPips"></div>
+            <div class="radar" id="radar">
+              <div class="radar-sweep"></div>
+              <div class="radar-ring r1"></div>
+              <div class="radar-ring r2"></div>
+              <div class="radar-cross"></div>
+              <div class="radar-player"></div>
+              <div class="radar-blips" id="radarBlips"></div>
+            </div>
+            <div class="relic-hint">Sonar sweep · press <kbd>E</kbd> near a relic</div>
+          </div>
+        </div>
+
+        <div class="crosshair" id="crosshair" aria-hidden="true">
+          <span class="ch-dot"></span>
+          <span class="ch-line l"></span>
+          <span class="ch-line r"></span>
+          <span class="ch-line t"></span>
+          <span class="ch-line b"></span>
+          <span class="ch-reticle"></span>
+        </div>
+
+        <div class="target-tag" id="targetTag"></div>
+
+        <div class="hud-bottom">
+          <div class="controls-hint">
+            <span><kbd>WASD</kbd> swim</span>
+            <span><kbd>SPACE</kbd> rise</span>
+            <span><kbd>SHIFT</kbd> dive</span>
+            <span><kbd>LMB</kbd> mine</span>
+            <span><kbd>RMB</kbd> build</span>
+          </div>
+          <div class="hotbar" id="hotbar"></div>
+          <div class="hint-line" id="hintLine">Move with <kbd>WASD</kbd> · collect the five relics</div>
+        </div>
+
+        <div class="touch-ui" id="touchUI">
+          <div class="touch-pad" aria-label="Movement controls">
+            <button class="touch-key up" type="button" data-hold="KeyW" aria-label="Swim forward">▲</button>
+            <button class="touch-key left" type="button" data-hold="KeyA" aria-label="Swim left">◀</button>
+            <button class="touch-key down" type="button" data-hold="KeyS" aria-label="Swim backward">▼</button>
+            <button class="touch-key right" type="button" data-hold="KeyD" aria-label="Swim right">▶</button>
+          </div>
+          <div class="touch-actions" aria-label="Action controls">
+            <button class="touch-act" type="button" data-hold="Space">RISE</button>
+            <button class="touch-act" type="button" data-hold="ShiftLeft">DIVE</button>
+            <button class="touch-act" type="button" data-action="mine">MINE</button>
+            <button class="touch-act" type="button" data-action="place">BUILD</button>
+            <button class="touch-act gold" type="button" data-action="relic">RELIC</button>
+          </div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+        <div class="complete" id="complete">
+          <div class="complete-card">
+            <span class="complete-kicker">REEF RESTORED</span>
+            <h2>The abyss remembers you.</h2>
+            <p>All five sunken relics are awake. The coral is singing again.</p>
+            <div class="complete-stats">
+              <span><b id="completeBlocks">0</b> blocks placed</span>
+              <span><b id="completeTime">0:00</b> dive time</span>
+            </div>
+            <button type="button" id="resumeBtn">Keep diving</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay" id="overlay">
+        <div class="overlay-bg"></div>
+        <div class="overlay-bubbles" id="overlayBubbles" aria-hidden="true"></div>
+        <div class="start-panel">
+          <div class="kicker"><span></span> A DEEP-SEA VOXEL SANDBOX <span></span></div>
+          <h1 class="title">
+            <span class="title-top">ABYSSAL</span>
+            <span class="title-bottom">BLOCKS</span>
+          </h1>
+          <p class="tagline">Minecraft, but the world drowned.</p>
+          <p class="blurb">
+            Dive a living procedural reef. Mine the seabed, build in coral and light, and recover
+            five relics before your air runs out.
+          </p>
+          <div class="feature-row">
+            <span class="feature"><i class="f-dot f-cyan"></i> Infinite-feeling reef</span>
+            <span class="feature"><i class="f-dot f-coral"></i> Mine &amp; build</span>
+            <span class="feature"><i class="f-dot f-gold"></i> 5 relics to find</span>
+          </div>
+          <button type="button" class="play-btn" id="playBtn">Play</button>
+          <div class="play-note">Click to dive · mouse look · headphones recommended</div>
+          <div class="start-controls">
+            <span><kbd>WASD</kbd> swim</span>
+            <span><kbd>SPACE</kbd> / <kbd>SHIFT</kbd> rise &amp; dive</span>
+            <span><kbd>E</kbd> collect</span>
+            <span><kbd>LMB</kbd> / <kbd>RMB</kbd> mine &amp; build</span>
+          </div>
+          <div class="start-foot">Procedural reef · Three.js · no downloads</div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
