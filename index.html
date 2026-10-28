@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#07090d" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <title>Mall of the Dead — Co-op Zombie Survival</title>
+  <meta name="description" content="A co-op zombie survival shooter set in a dead shopping mall. Hold the atrium, keep your partner alive, and survive the night." />
+</head>
+<body>
+  <div id="app">
+    <div id="viewport" aria-hidden="true"></div>
+
+    <div class="screen-fx" id="screen-fx" aria-hidden="true">
+      <div class="fx-vignette"></div>
+      <div class="fx-grain"></div>
+      <div class="fx-scanlines"></div>
+      <div class="fx-damage" id="fx-damage"></div>
+      <div class="fx-heal" id="fx-heal"></div>
+    </div>
+
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="hud-block hud-wave">
+          <div class="hud-label">WAVE <span id="wave-num">01</span></div>
+          <div class="hud-bar"><i id="wave-progress"></i></div>
+          <div class="hud-sub" id="wave-sub">HOSTILES REMAINING <b id="hostiles">0</b></div>
+        </div>
+        <div class="hud-compass">
+          <div class="compass-tape" id="compass-tape">
+            <span>W</span><span>NW</span><span>N</span><span>NE</span><span>E</span><span>SE</span><span>S</span><span>SW</span><span>W</span>
+          </div>
+          <div class="compass-mark"></div>
+          <div class="compass-deg" id="compass-deg">000</div>
+        </div>
+        <div class="hud-block hud-score">
+          <div class="hud-label">SCORE</div>
+          <div class="hud-score-value" id="score">0</div>
+          <div class="hud-sub" id="kill-total">0 KILLS</div>
+        </div>
+        <div id="killfeed" class="killfeed"></div>
+      </div>
+
+      <div class="hud-bottom">
+        <div class="hud-left">
+          <div class="vitals">
+            <div class="vital-line">
+              <span class="vital-icon">✚</span>
+              <div class="vital-bar"><i id="health-bar"></i></div>
+              <span class="vital-num" id="health-num">100</span>
+            </div>
+            <div class="vital-line stamina-line">
+              <span class="vital-icon">⚡</span>
+              <div class="vital-bar"><i id="stamina-bar"></i></div>
+            </div>
+          </div>
+          <div class="partner-panel" id="partner-panel">
+            <div class="partner-head">
+              <span class="partner-dot"></span>
+              <span class="partner-name">ROOK</span>
+              <span class="partner-state" id="partner-state">LINKED</span>
+            </div>
+            <div class="partner-hp"><i id="partner-hp"></i></div>
+            <div class="partner-revive hidden" id="partner-revive">
+              <span>REVIVE</span>
+              <div class="revive-bar"><i id="revive-progress"></i></div>
+              <span class="key">HOLD E</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hud-center">
+          <div id="subtitle" class="subtitle"></div>
+          <div id="interact" class="interact hidden"><span class="key">E</span><span id="interact-label">PICK UP</span></div>
+        </div>
+
+        <div class="hud-right">
+          <div class="grenade-line"><span class="grenade-icon">◉</span><span id="grenades">2</span> FRAGS</div>
+          <div class="weapon-panel">
+            <div class="weapon-name" id="weapon-name">M4 · CARBINE</div>
+            <div class="ammo-line">
+              <span class="ammo-mag" id="ammo-mag">30</span>
+              <span class="ammo-sep">/</span>
+              <span class="ammo-reserve" id="ammo-reserve">150</span>
+            </div>
+            <div class="weapon-slots"><span id="slot-1" class="active">1</span><span id="slot-2">2</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="crosshair" class="crosshair">
+        <i class="ch ch-t"></i><i class="ch ch-b"></i><i class="ch ch-l"></i><i class="ch ch-r"></i>
+        <i class="ch-dot"></i>
+      </div>
+      <div id="hitmarker" class="hitmarker"><i></i><i></i><i></i><i></i></div>
+      <div id="damage-arrows" class="damage-arrows"></div>
+
+      <div id="wave-banner" class="wave-banner hidden">
+        <div class="wb-kicker">SECURITY BULLETIN</div>
+        <div class="wb-title" id="wb-title">WAVE 01</div>
+        <div class="wb-sub" id="wb-sub">THE HORDE IS INSIDE THE BUILDING</div>
+      </div>
+
+      <div id="low-health" class="low-health hidden">
+        <div class="lh-text">CRITICAL</div>
+        <div class="lh-heart"></div>
+      </div>
+    </div>
+
+    <section id="menu" class="screen menu">
+      <div class="menu-left">
+        <div class="brand">
+          <div class="brand-top"><span class="brand-rule"></span><span>OMNICORP MALL · SECURITY FEED 07</span></div>
+          <h1 class="logo"><span class="logo-mall">MALL</span><span class="logo-of">OF THE</span><span class="logo-dead">DEAD</span></h1>
+          <div class="tagline">CO-OP ZOMBIE SURVIVAL</div>
+          <p class="blurb">The lights went out. The doors stayed locked.<br />You and your partner are the only thing keeping the food court from becoming a buffet.</p>
+        </div>
+        <div class="menu-actions">
+          <button id="btn-play" class="btn btn-primary" data-action="play" aria-label="Play"><span class="btn-kicker">CO-OP · AI PARTNER</span><span class="btn-label">PLAY</span><span class="btn-arrow">▶</span></button>
+          <button id="btn-solo" class="btn btn-ghost"><span class="btn-kicker">NO PARTNER · HIGH RISK</span><span class="btn-label">SOLO SURVIVAL</span></button>
+          <div class="menu-row">
+            <button id="btn-help" class="btn btn-small">HOW TO PLAY</button>
+            <button id="btn-options" class="btn btn-small">OPTIONS</button>
+          </div>
+        </div>
+        <div class="menu-foot">
+          <span>WASD <b>MOVE</b></span><span>MOUSE <b>AIM</b></span><span>RMB <b>AIM DOWN SIGHTS</b></span><span>R <b>RELOAD</b></span><span>G <b>FRAG</b></span><span>F <b>FLASHLIGHT</b></span>
+        </div>
+      </div>
+      <div class="menu-right">
+        <div class="feed-card">
+          <div class="feed-head"><span class="feed-live"><i></i> LIVE</span><span>CAM 07 · ATRIUM</span></div>
+          <div class="feed-meta">
+            <div><span>SUBJECTS</span><b id="feed-count">1,842</b></div>
+            <div><span>EXITS</span><b class="danger">SEALED</b></div>
+            <div><span>NIGHT SHIFT</span><b>02:14 AM</b></div>
+          </div>
+          <div class="feed-scan"></div>
+        </div>
+        <div class="build-tag">BUILD 1.0.7 · <span id="quality-label">AUTO</span></div>
+      </div>
+    </section>
+
+    <section id="help" class="screen modal-screen hidden">
+      <div class="modal">
+        <div class="modal-head"><span class="modal-kicker">SECURITY ORIENTATION</span><h2>HOW TO SURVIVE</h2><button class="modal-close" id="help-close" aria-label="Close">✕</button></div>
+        <div class="help-grid">
+          <div class="help-col">
+            <h3>MOVEMENT</h3>
+            <p><b>WASD</b> move · <b>Shift</b> sprint · <b>Ctrl</b> crouch · <b>Space</b> vault</p>
+            <h3>COMBAT</h3>
+            <p><b>LMB</b> fire · <b>RMB</b> aim · <b>R</b> reload · <b>1/2</b> weapons · <b>G</b> frag grenade</p>
+            <h3>GEAR</h3>
+            <p><b>F</b> flashlight · <b>E</b> revive partner / pick up supplies</p>
+          </div>
+          <div class="help-col">
+            <h3>THE JOB</h3>
+            <p>Clear each wave of infected. Headshots hurt them most. Between waves, grab the supply drops in the atrium and keep Rook on his feet.</p>
+            <h3>THE PARTNER</h3>
+            <p>Rook draws fire and calls out threats. If he goes down, get close and <b>hold E</b>. Neither of you makes it out alone.</p>
+            <h3>THE MALL</h3>
+            <p>Flickering lights, narrow storefronts, a lot of things that used to be shoppers. Watch the escalators and the cinema doors.</p>
+          </div>
+        </div>
+        <div class="modal-foot"><span>Press <b>ESC</b> to pause during a run.</span><button class="btn btn-small" id="help-done">BRIEFING COMPLETE</button></div>
+      </div>
+    </section>
+
+    <section id="options" class="screen modal-screen hidden">
+      <div class="modal modal-small">
+        <div class="modal-head"><span class="modal-kicker">SYSTEM</span><h2>OPTIONS</h2><button class="modal-close" id="options-close" aria-label="Close">✕</button></div>
+        <div class="opt-row"><label for="opt-sens">MOUSE SENSITIVITY</label><input id="opt-sens" type="range" min="0.2" max="3" step="0.05" value="1" /><output id="opt-sens-out">1.00</output></div>
+        <div class="opt-row"><label for="opt-vol">MASTER VOLUME</label><input id="opt-vol" type="range" min="0" max="1" step="0.05" value="0.8" /><output id="opt-vol-out">80%</output></div>
+        <div class="opt-row"><label for="opt-quality">RENDER QUALITY</label>
+          <select id="opt-quality"><option value="auto">AUTO</option><option value="high">HIGH</option><option value="low">PERFORMANCE</option></select>
+        </div>
+        <div class="opt-row"><label for="opt-invert">INVERT LOOK</label><input id="opt-invert" type="checkbox" /></div>
+        <div class="modal-foot"><span>Changes apply instantly.</span><button class="btn btn-small" id="options-done">BACK</button></div>
+      </div>
+    </section>
+
+    <section id="pause" class="screen modal-screen hidden">
+      <div class="modal modal-small pause-modal">
+        <div class="modal-head"><span class="modal-kicker">PATROL PAUSED</span><h2>HOLD POSITION</h2></div>
+        <p class="pause-copy">The mall is still full of things that want you dead. Take a breath.</p>
+        <div class="pause-actions">
+          <button id="btn-resume" class="btn btn-primary"><span class="btn-label">RESUME</span></button>
+          <button id="btn-pause-help" class="btn btn-ghost"><span class="btn-label">CONTROLS</span></button>
+          <button id="btn-restart" class="btn btn-ghost"><span class="btn-label">RESTART RUN</span></button>
+          <button id="btn-quit" class="btn btn-ghost"><span class="btn-label">QUIT TO TITLE</span></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameover" class="screen modal-screen hidden">
+      <div class="modal modal-small gameover-modal">
+        <div class="modal-head"><span class="modal-kicker danger">SIGNAL LOST</span><h2>YOU ARE DEAD</h2></div>
+        <p class="pause-copy" id="gameover-copy">The mall keeps its guests.</p>
+        <div class="stat-grid">
+          <div><span>WAVES SURVIVED</span><b id="stat-wave">0</b></div>
+          <div><span>KILLS</span><b id="stat-kills">0</b></div>
+          <div><span>HEADSHOTS</span><b id="stat-heads">0</b></div>
+          <div><span>ACCURACY</span><b id="stat-acc">0%</b></div>
+          <div><span>SCORE</span><b id="stat-score">0</b></div>
+          <div><span>TIME</span><b id="stat-time">00:00</b></div>
+        </div>
+        <div class="pause-actions">
+          <button id="btn-redeploy" class="btn btn-primary"><span class="btn-label">REDEPLOY</span></button>
+          <button id="btn-gameover-quit" class="btn btn-ghost"><span class="btn-label">QUIT TO TITLE</span></button>
+        </div>
+      </div>
+    </section>
+
+    <div id="loading" class="loading">
+      <div class="loading-inner">
+        <div class="loading-brand">OMNICORP MALL</div>
+        <div class="loading-title">MALL OF THE DEAD</div>
+        <div class="loading-track"><i id="loading-bar"></i></div>
+        <div class="loading-status" id="loading-status">LINKING SECURITY FEED</div>
+        <div class="loading-tip" id="loading-tip">TIP: AIM FOR THE HEAD. THEY HATE THAT.</div>
+      </div>
+    </div>
+
+    <div id="rotate" class="rotate hidden">
+      <div class="rotate-inner"><div class="rotate-icon">⟳</div><p>Rotate your device. The mall is widescreen.</p></div>
+    </div>
+    <div id="webgl-error" class="screen modal-screen hidden">
+      <div class="modal modal-small"><h2>WEBGL UNAVAILABLE</h2><p class="pause-copy">This browser could not start the 3D renderer. Enable hardware acceleration or try a recent Chrome, Edge, Firefox, or Safari.</p></div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
