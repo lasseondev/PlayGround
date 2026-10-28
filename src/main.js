@@ -287,9 +287,9 @@ function startGame() {
   audio.siren()
   requestLock()
 
-  showBanner('OPERATION LAST LIGHT', 'WAVE 01', 'HOLD THE ATRIUM · 4.5s TO CONTACT', 3200)
+  showBanner('OPERATION LAST LIGHT', 'WAVE 01', 'STRAYS IN THE ATRIUM · HOLD POSITION', 3200)
   say('NOVA', 'Squad link is green. I have the east lane — you take the atrium.', 3800)
-  notify('SECTOR SECURE · REGROUP')
+  notify('STRAYS DETECTED · CLEAR THE ATRIUM')
 }
 
 function pauseGame() {
