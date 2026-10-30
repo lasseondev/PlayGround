@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#141a44" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23141a44'/%3E%3Cpath d='M10 42h44v6H10z' fill='%2345e0ff'/%3E%3Cpath d='M18 18h28v6H18zM28 24h8v18h-8z' fill='%23ffc84a'/%3E%3C/svg%3E" />
+<title>Turbo Trophy — Sunset Circuit</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Turbo Trophy kart racing game"></canvas>
+
+  <div id="hud" class="hud is-hidden" aria-hidden="true">
+    <div class="hud-top">
+      <div class="stat-stack">
+        <div class="stat lap">
+          <span class="stat-label">LAP</span>
+          <span class="stat-num"><span id="lapNum">1</span><span class="den">/3</span></span>
+        </div>
+        <div class="stat place">
+          <span class="stat-num"><span id="posNum">6</span><span id="posSuf" class="suf">th</span></span>
+          <span class="stat-label">PLACE</span>
+        </div>
+      </div>
+      <div class="minimap-wrap">
+        <canvas id="minimap" width="180" height="180"></canvas>
+        <span class="minimap-label">SUNSET CIRCUIT</span>
+      </div>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="item-slot" id="itemSlot">
+        <div class="item-icon" id="itemIcon">?</div>
+        <div class="item-earth"><div class="item-label" id="itemLabel">ITEM BOX</div></div>
+        <div class="item-key">SPACE</div>
+      </div>
+
+      <div class="mid">
+        <div class="drift-meter" id="driftMeter"><div class="drift-fill" id="driftFill"></div><span>DRIFT</span></div>
+        <div class="race-time" id="raceTime">0:00.0</div>
+      </div>
+
+      <div class="speedo">
+        <div class="speed-bar"><div class="speed-fill" id="speedFill"></div></div>
+        <div class="speed-text"><span id="speedNum">0</span><small>KM/H</small></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <div id="touch" class="touch is-hidden" aria-hidden="true">
+    <div class="touch-side touch-left">
+      <button class="tbtn" data-control="left" aria-label="Steer left">◀</button>
+      <button class="tbtn" data-control="right" aria-label="Steer right">▶</button>
+    </div>
+    <div class="touch-side touch-right">
+      <button class="tbtn mini" data-control="drift" aria-label="Drift">DRIFT</button>
+      <button class="tbtn mini" data-control="item" aria-label="Use item">ITEM</button>
+      <button class="tbtn gas" data-control="gas" aria-label="Accelerate">GAS</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="panel title-panel" id="titlePanel">
+      <div class="kicker"><span class="dot"></span> Sunset Circuit · 3 Laps · 6 Karts</div>
+      <h1 class="logo">TURBO<span>TROPHY</span></h1>
+      <p class="tagline">Six karts. Three laps. One very questionable item box.</p>
+
+      <button class="primary" id="startBtn">START ENGINE <span>▸</span></button>
+
+      <div class="controls-grid">
+        <div class="control"><div class="keys"><kbd>W</kbd><kbd>↑</kbd></div><div><b>Accelerate</b><span>Hold on the grid for a rocket start</span></div></div>
+        <div class="control"><div class="keys"><kbd>A</kbd><kbd>D</kbd></div><div><b>Steer</b><span>Arrows work too</span></div></div>
+        <div class="control"><div class="keys"><kbd>SHIFT</kbd></div><div><b>Drift</b><span>Hold through a turn, release for turbo</span></div></div>
+        <div class="control"><div class="keys"><kbd>SPACE</kbd></div><div><b>Item</b><span>Mushroom, shell, banana or star</span></div></div>
+      </div>
+
+      <div class="fineprint">First kart across the line after 3 laps wins. Don't feed the bananas.</div>
+    </div>
+
+    <div class="panel results-panel is-hidden" id="resultsPanel">
+      <div class="kicker" id="resultsKicker">Race complete</div>
+      <div class="result-hero">
+        <div class="result-place" id="resultPlace">1st</div>
+        <div class="result-meta">
+          <h2 id="resultTitle">Trophy secured!</h2>
+          <p id="resultSub">You showed those item boxes who's boss.</p>
+        </div>
+      </div>
+      <div class="standings" id="standings"></div>
+      <div class="result-actions">
+        <button class="primary" id="againBtn">RACE AGAIN <span>▸</span></button>
+        <button class="ghost" id="menuBtn">MAIN MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="countdown" id="countdown"></div>
+  <button class="mute" id="muteBtn" aria-label="Toggle sound">🔊</button>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
