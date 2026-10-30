@@ -1,0 +1,1079 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Lumen Labyrinth — a tiny keyboard maze</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2308101f'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%2367e8f9' stroke-width='2.5'/%3E%3Ccircle cx='22' cy='23' r='2.5' fill='%23ffd166'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #05070f;
+    --panel: rgba(12, 20, 38, 0.78);
+    --line: rgba(126, 173, 255, 0.18);
+    --text: #e8efff;
+    --muted: #8fa3c8;
+    --cyan: #67e8f9;
+    --mint: #5eead4;
+    --gold: #ffd166;
+    --danger: #fb7185;
+    --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { min-height: 100%; }
+
+  body {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100svh;
+    padding: clamp(14px, 2.5vw, 32px);
+    color: var(--text);
+    font-family: var(--font);
+    background:
+      radial-gradient(900px 600px at 12% -10%, rgba(45, 104, 255, 0.20), transparent 62%),
+      radial-gradient(800px 520px at 92% 6%, rgba(20, 210, 190, 0.13), transparent 60%),
+      radial-gradient(1000px 700px at 50% 115%, rgba(124, 58, 237, 0.14), transparent 65%),
+      var(--bg);
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.32;
+    background-image: radial-gradient(rgba(148, 190, 255, 0.13) 1px, transparent 1.2px);
+    background-size: 28px 28px;
+    mask-image: radial-gradient(ellipse at 50% 40%, black, transparent 78%);
+  }
+
+  .shell {
+    position: relative;
+    width: min(1040px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 1.8vh, 20px);
+  }
+
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px 24px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+  }
+
+  .mark {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(103, 232, 249, 0.22), rgba(94, 234, 212, 0.05));
+    border: 1px solid rgba(103, 232, 249, 0.35);
+    box-shadow: 0 0 24px rgba(103, 232, 249, 0.16), inset 0 0 18px rgba(103, 232, 249, 0.08);
+  }
+
+  .mark::before,
+  .mark::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+  }
+
+  .mark::before {
+    inset: 10px;
+    border: 2px solid var(--cyan);
+    box-shadow: 0 0 12px rgba(103, 232, 249, 0.8);
+  }
+
+  .mark::after {
+    width: 5px;
+    height: 5px;
+    right: 8px;
+    bottom: 8px;
+    background: var(--gold);
+    box-shadow: 0 0 10px var(--gold);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.18rem, 2.2vw, 1.55rem);
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+  }
+
+  .tagline {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.015em;
+  }
+
+  .hud {
+    display: flex;
+    align-items: stretch;
+    gap: 9px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .stat {
+    min-width: 76px;
+    padding: 7px 12px 8px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(20, 33, 60, 0.86), rgba(10, 17, 32, 0.86));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  }
+
+  .stat .label {
+    display: block;
+    font-size: 0.61rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .stat .value {
+    display: block;
+    margin-top: 2px;
+    font-family: var(--mono);
+    font-size: 0.88rem;
+    font-variant-numeric: tabular-nums;
+    color: #f2f7ff;
+  }
+
+  .stat.shards .value { color: var(--gold); }
+  .stat.level .value { color: var(--cyan); }
+
+  .stage {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 8px;
+    border: 1px solid rgba(126, 173, 255, 0.16);
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(17, 28, 51, 0.62), rgba(5, 9, 18, 0.68));
+    box-shadow:
+      0 40px 90px -40px rgba(0, 0, 0, 0.9),
+      0 0 0 1px rgba(255, 255, 255, 0.015) inset,
+      0 0 80px -30px rgba(50, 120, 255, 0.25);
+  }
+
+  .board {
+    --ratio: 1.4;
+    position: relative;
+    width: min(100%, calc((100svh - 286px) * var(--ratio)));
+    min-width: 280px;
+    aspect-ratio: var(--ratio);
+    border-radius: 18px;
+    overflow: hidden;
+    background: #060a14;
+    outline: none;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(3, 7, 16, 0.7);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    opacity: 1;
+    transition: opacity 220ms ease;
+    z-index: 3;
+  }
+
+  .overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .panel {
+    width: min(430px, 100%);
+    padding: clamp(22px, 4vw, 34px);
+    text-align: center;
+    border: 1px solid rgba(126, 173, 255, 0.26);
+    border-radius: 20px;
+    background:
+      radial-gradient(340px 180px at 50% 0%, rgba(103, 232, 249, 0.12), transparent 70%),
+      linear-gradient(180deg, rgba(20, 33, 60, 0.97), rgba(8, 14, 27, 0.98));
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    transform: translateY(0) scale(1);
+    animation: panel-in 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  }
+
+  @keyframes panel-in {
+    from { transform: translateY(12px) scale(0.97); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  .eyebrow {
+    margin: 0 0 8px;
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mint);
+  }
+
+  .panel h2 {
+    margin: 0;
+    font-size: clamp(1.4rem, 3.2vw, 1.9rem);
+    letter-spacing: -0.015em;
+  }
+
+  .panel p {
+    margin: 10px auto 0;
+    max-width: 32ch;
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin: 18px 0 20px;
+  }
+
+  .result-grid div {
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .result-grid dt {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .result-grid dd {
+    margin: 4px 0 0;
+    font-family: var(--mono);
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  button {
+    appearance: none;
+    width: 100%;
+    padding: 13px 20px;
+    border: 1px solid rgba(103, 232, 249, 0.48);
+    border-radius: 12px;
+    color: #041019;
+    font: 800 0.9rem/1 var(--font);
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    background: linear-gradient(180deg, #a5f3fc, #67e8f9 55%, #34d3e8);
+    box-shadow: 0 10px 26px -10px rgba(103, 232, 249, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    transition: transform 120ms ease, filter 120ms ease;
+  }
+
+  button:hover { filter: brightness(1.07); transform: translateY(-1px); }
+  button:active { transform: translateY(0) scale(0.99); }
+  button:focus-visible { outline: 3px solid rgba(103, 232, 249, 0.35); outline-offset: 3px; }
+
+  .hint {
+    margin-top: 11px;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  kbd {
+    display: inline-block;
+    min-width: 1.5em;
+    padding: 0.16em 0.4em;
+    border: 1px solid rgba(168, 197, 255, 0.3);
+    border-bottom-color: rgba(168, 197, 255, 0.5);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.055);
+    color: #dbe7ff;
+    font: 600 0.72em/1.35 var(--mono);
+    text-align: center;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  }
+
+  .toast {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    z-index: 2;
+    max-width: calc(100% - 32px);
+    padding: 9px 15px;
+    border: 1px solid rgba(126, 173, 255, 0.24);
+    border-radius: 999px;
+    background: rgba(5, 11, 23, 0.9);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    color: #dbe7ff;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    transform: translate(-50%, 8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.gold { border-color: rgba(255, 209, 102, 0.45); color: #ffe6a6; }
+  .toast.warn { border-color: rgba(251, 113, 133, 0.42); color: #ffc0c8; }
+
+  footer {
+    display: flex;
+    align-items: center;
+    gap: 10px 20px;
+    flex-wrap: wrap;
+    padding: 0 4px;
+    color: var(--muted);
+    font-size: 0.76rem;
+  }
+
+  footer .keys { display: inline-flex; align-items: center; gap: 5px; }
+  footer .sep { flex: 1 1 10px; }
+  #status { color: #b8c8e6; }
+
+  @media (max-width: 720px) {
+    .board { width: 100%; }
+    .hud { width: 100%; justify-content: flex-start; }
+    .stat { flex: 1 1 0; min-width: 0; }
+    .stat .value { font-size: 0.82rem; }
+    .tagline { display: none; }
+    footer .sep { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .panel { animation: none; }
+    button, .toast, .overlay { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main class="shell">
+  <header>
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <h1>Lumen Labyrinth</h1>
+        <p class="tagline">Gather every shard, then slip through the gate.</p>
+      </div>
+    </div>
+    <div class="hud" aria-label="Game statistics">
+      <div class="stat level"><span class="label">Chamber</span><span class="value" id="hud-level">1 / 3</span></div>
+      <div class="stat shards"><span class="label">Shards</span><span class="value" id="hud-shards">0 / 3</span></div>
+      <div class="stat"><span class="label">Time</span><span class="value" id="hud-time">0.0s</span></div>
+      <div class="stat"><span class="label">Moves</span><span class="value" id="hud-moves">0</span></div>
+    </div>
+  </header>
+
+  <section class="stage">
+    <div class="board" id="board">
+      <canvas id="game" role="img" aria-label="Labyrinth board. Use the arrow keys or W A S D to move, collect all golden shards, then reach the teal gate."></canvas>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="overlay hidden" id="overlay">
+        <div class="panel" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+          <p class="eyebrow" id="overlay-eyebrow">Chamber cleared</p>
+          <h2 id="overlay-title">Well lit.</h2>
+          <p id="overlay-copy"></p>
+          <dl class="result-grid" id="overlay-stats"></dl>
+          <button type="button" id="overlay-button">Next chamber</button>
+          <p class="hint">or press <kbd>Enter</kbd></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span class="keys"><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> / <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</span>
+    <span class="keys"><kbd>R</kbd> restart chamber</span>
+    <span class="keys"><kbd>Enter</kbd> continue</span>
+    <span class="sep"></span>
+    <span id="status" role="status" aria-live="polite">Use the arrow keys or WASD to move.</span>
+  </footer>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const LEVELS = [
+    { cols: 10, rows: 7, shards: 3 },
+    { cols: 12, rows: 8, shards: 4 },
+    { cols: 14, rows: 9, shards: 5 }
+  ];
+
+  const DIRECTIONS = {
+    arrowup: [0, -1], arrowdown: [0, 1], arrowleft: [-1, 0], arrowright: [1, 0],
+    w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0]
+  };
+
+  const board = document.getElementById("board");
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const overlay = document.getElementById("overlay");
+  const overlayEyebrow = document.getElementById("overlay-eyebrow");
+  const overlayTitle = document.getElementById("overlay-title");
+  const overlayCopy = document.getElementById("overlay-copy");
+  const overlayStats = document.getElementById("overlay-stats");
+  const overlayButton = document.getElementById("overlay-button");
+  const toastEl = document.getElementById("toast");
+  const statusEl = document.getElementById("status");
+  const hudLevel = document.getElementById("hud-level");
+  const hudShards = document.getElementById("hud-shards");
+  const hudTime = document.getElementById("hud-time");
+  const hudMoves = document.getElementById("hud-moves");
+
+  let level = 0;
+  let maze = [];
+  let gridW = 0;
+  let gridH = 0;
+  let exit = { x: 1, y: 1 };
+  let shards = [];
+  let exitOpen = false;
+  let player = { x: 1, y: 1 };
+  let render = { x: 1, y: 1 };
+  let phase = "playing";
+  let moves = 0;
+  let totalMoves = 0;
+  let totalTime = 0;
+  let clockStart = null;
+  let clockElapsed = 0;
+  let clockRunning = false;
+  let held = [];
+  let nextMoveAt = 0;
+  let toastTimer = null;
+  let lastStatus = "";
+  let cw = 0;
+  let ch = 0;
+  let cell = 0;
+  let ox = 0;
+  let oy = 0;
+  let dpr = 1;
+  let lastFrame = performance.now();
+
+  // ---------- deterministic randomness ----------
+
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function shuffle(list, rng) {
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  }
+
+  // ---------- maze generation ----------
+
+  function buildMaze(cols, rows, rng) {
+    const w = cols * 2 + 1;
+    const h = rows * 2 + 1;
+    const grid = Array.from({ length: h }, () => Array(w).fill(1));
+    const stack = [[1, 1]];
+    grid[1][1] = 0;
+
+    while (stack.length) {
+      const [x, y] = stack[stack.length - 1];
+      const options = [];
+      if (y > 2 && grid[y - 2][x] === 1) options.push([x, y - 2, x, y - 1]);
+      if (y < h - 3 && grid[y + 2][x] === 1) options.push([x, y + 2, x, y + 1]);
+      if (x > 2 && grid[y][x - 2] === 1) options.push([x - 2, y, x - 1, y]);
+      if (x < w - 3 && grid[y][x + 2] === 1) options.push([x + 2, y, x + 1, y]);
+
+      if (options.length) {
+        const [nx, ny, wx, wy] = options[Math.floor(rng() * options.length)];
+        grid[wy][wx] = 0;
+        grid[ny][nx] = 0;
+        stack.push([nx, ny]);
+      } else {
+        stack.pop();
+      }
+    }
+
+    // Punch a few loops into the perfect maze so there is more than one route.
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        if (grid[y][x] !== 1) continue;
+        const horizontal = grid[y][x - 1] === 0 && grid[y][x + 1] === 0 &&
+          grid[y - 1][x] === 1 && grid[y + 1][x] === 1;
+        const vertical = grid[y - 1][x] === 0 && grid[y + 1][x] === 0 &&
+          grid[y][x - 1] === 1 && grid[y][x + 1] === 1;
+        if ((horizontal || vertical) && rng() < 0.075) grid[y][x] = 0;
+      }
+    }
+
+    return grid;
+  }
+
+  // ---------- level lifecycle ----------
+
+  function loadLevel(index) {
+    level = index;
+    const config = LEVELS[level];
+    const rng = mulberry32((Date.now() ^ ((level + 1) * 0x9E3779B9)) >>> 0);
+
+    maze = buildMaze(config.cols, config.rows, rng);
+    gridH = maze.length;
+    gridW = maze[0].length;
+    exit = { x: gridW - 2, y: gridH - 2 };
+
+    const candidates = [];
+    for (let y = 1; y < gridH; y += 2) {
+      for (let x = 1; x < gridW; x += 2) {
+        if (maze[y][x] !== 0) continue;
+        if (x === 1 && y === 1) continue;
+        if (x === exit.x && y === exit.y) continue;
+        if (Math.abs(x - 1) + Math.abs(y - 1) < 4) continue;
+        candidates.push({ x, y });
+      }
+    }
+    shuffle(candidates, rng);
+    shards = candidates.slice(0, Math.min(config.shards, candidates.length)).map((spot) => ({
+      x: spot.x,
+      y: spot.y,
+      collected: false,
+      phase: rng() * Math.PI * 2
+    }));
+
+    resetChamber({ announce: true });
+    board.style.setProperty("--ratio", String(gridW / gridH));
+    resizeCanvas();
+  }
+
+  function resetChamber({ announce = false } = {}) {
+    phase = "playing";
+    player = { x: 1, y: 1 };
+    render = { x: 1, y: 1 };
+    shards.forEach((shard) => { shard.collected = false; });
+    exitOpen = false;
+    moves = 0;
+    held = [];
+    nextMoveAt = 0;
+    clockStart = null;
+    clockElapsed = 0;
+    clockRunning = false;
+    overlay.classList.add("hidden");
+    updateHud(true);
+    updateStatus(true);
+    if (announce) {
+      showToast("Chamber " + (level + 1) + " — " + shards.length + " shards hidden", "", 1800);
+    }
+  }
+
+  function startClock() {
+    if (clockRunning) return;
+    clockStart = performance.now();
+    clockRunning = true;
+  }
+
+  function stopClock() {
+    if (!clockRunning) return;
+    clockElapsed += performance.now() - clockStart;
+    clockRunning = false;
+    clockStart = null;
+  }
+
+  function clockMs() {
+    return clockElapsed + (clockRunning ? performance.now() - clockStart : 0);
+  }
+
+  function formatTime(ms) {
+    return (Math.max(0, ms) / 1000).toFixed(1) + "s";
+  }
+
+  function collectedCount() {
+    return shards.reduce((count, shard) => count + (shard.collected ? 1 : 0), 0);
+  }
+
+  function winLevel() {
+    if (phase !== "playing") return;
+    phase = "cleared";
+    stopClock();
+    const time = clockElapsed;
+    totalTime += time;
+    totalMoves += moves;
+    held = [];
+
+    const last = level === LEVELS.length - 1;
+    overlayEyebrow.textContent = last ? "Labyrinth complete" : "Chamber cleared";
+    overlayTitle.textContent = last ? "You found the light." : "Well lit.";
+    overlayCopy.textContent = last
+      ? "Every shard gathered. Every gate crossed. The labyrinth lets you go."
+      : "The gate recognized every shard. A deeper chamber is waiting.";
+    overlayStats.innerHTML =
+      "<div><dt>Time</dt><dd>" + formatTime(time) + "</dd></div>" +
+      "<div><dt>Moves</dt><dd>" + moves + "</dd></div>" +
+      (last
+        ? "<div><dt>Total time</dt><dd>" + formatTime(totalTime) + "</dd></div>" +
+          "<div><dt>Total moves</dt><dd>" + totalMoves + "</dd></div>"
+        : "<div><dt>Shards</dt><dd>" + shards.length + " / " + shards.length + "</dd></div>" +
+          "<div><dt>Next</dt><dd>Chamber " + (level + 2) + "</dd></div>");
+    overlayButton.textContent = last ? "Play again" : "Next chamber";
+    overlay.classList.remove("hidden");
+    updateHud(true);
+
+    if (last) {
+      totalTime = 0;
+      totalMoves = 0;
+    }
+  }
+
+  function primaryAction() {
+    if (phase !== "cleared") return;
+    if (level === LEVELS.length - 1) {
+      totalTime = 0;
+      totalMoves = 0;
+      loadLevel(0);
+    } else {
+      loadLevel(level + 1);
+    }
+  }
+
+  // ---------- movement ----------
+
+  function tryMove(dx, dy) {
+    if (phase !== "playing") return;
+    const nx = player.x + dx;
+    const ny = player.y + dy;
+    if (ny < 0 || ny >= gridH || nx < 0 || nx >= gridW) return;
+    if (maze[ny][nx] !== 0) return;
+
+    player.x = nx;
+    player.y = ny;
+    moves += 1;
+    startClock();
+
+    const shard = shards.find((item) => !item.collected && item.x === nx && item.y === ny);
+    if (shard) {
+      shard.collected = true;
+      const found = collectedCount();
+      if (found === shards.length) {
+        exitOpen = true;
+        showToast("Every shard found — the gate is open!", "gold", 2200);
+      } else {
+        showToast("Shard " + found + " of " + shards.length + " collected", "gold", 1400);
+      }
+      updateStatus(true);
+    }
+
+    if (nx === exit.x && ny === exit.y) {
+      if (exitOpen) {
+        winLevel();
+      } else {
+        const remaining = shards.length - collectedCount();
+        showToast("The gate is sealed — " + remaining + " more shard" + (remaining === 1 ? "" : "s") + " to find", "warn", 1900);
+      }
+    }
+    updateHud();
+    updateStatus();
+  }
+
+  function updateHeld(now) {
+    if (phase !== "playing" || held.length === 0 || now < nextMoveAt) return;
+    const dir = DIRECTIONS[held[held.length - 1]];
+    if (!dir) return;
+    tryMove(dir[0], dir[1]);
+    nextMoveAt = now + 92;
+  }
+
+  // ---------- input ----------
+
+  function onKeyDown(event) {
+    const key = event.key.toLowerCase();
+    const isGameKey = key in DIRECTIONS || key === "r" || key === "enter" || key === " ";
+
+    if (key === "arrowup" || key === "arrowdown" || key === "arrowleft" ||
+        key === "arrowright" || key === " ") {
+      event.preventDefault();
+    }
+
+    if (phase === "cleared") {
+      if (key === "enter" || key === " ") {
+        event.preventDefault();
+        primaryAction();
+      } else if (key === "r") {
+        event.preventDefault();
+        resetChamber({ announce: true });
+      }
+      return;
+    }
+
+    const dir = DIRECTIONS[key];
+    if (dir) {
+      event.preventDefault();
+      if (!held.includes(key)) {
+        held.push(key);
+        tryMove(dir[0], dir[1]);
+        nextMoveAt = performance.now() + 165;
+      }
+      return;
+    }
+
+    if (key === "r") {
+      event.preventDefault();
+      resetChamber({ announce: true });
+    }
+  }
+
+  function onKeyUp(event) {
+    const key = event.key.toLowerCase();
+    held = held.filter((item) => item !== key);
+  }
+
+  document.addEventListener("keydown", onKeyDown);
+  document.addEventListener("keyup", onKeyUp);
+  window.addEventListener("blur", () => { held = []; });
+
+  overlayButton.addEventListener("click", primaryAction);
+
+  // ---------- HUD and messages ----------
+
+  function setText(element, value) {
+    if (element.textContent !== value) element.textContent = value;
+  }
+
+  function updateHud(force = false) {
+    const levelText = (level + 1) + " / " + LEVELS.length;
+    const shardText = collectedCount() + " / " + shards.length;
+    const timeText = formatTime(clockMs());
+    const moveText = String(moves);
+    if (force) {
+      hudLevel.textContent = levelText;
+      hudShards.textContent = shardText;
+      hudTime.textContent = timeText;
+      hudMoves.textContent = moveText;
+      return;
+    }
+    setText(hudLevel, levelText);
+    setText(hudShards, shardText);
+    setText(hudTime, timeText);
+    setText(hudMoves, moveText);
+  }
+
+  function updateStatus(force = false) {
+    let text;
+    if (phase === "cleared") {
+      text = level === LEVELS.length - 1 ? "Run complete." : "Chamber cleared. Onward.";
+    } else if (exitOpen) {
+      text = "The gate is open — reach the teal ring.";
+    } else {
+      const remaining = shards.length - collectedCount();
+      text = "Collect " + remaining + " more shard" + (remaining === 1 ? "" : "s") + " to unlock the gate.";
+    }
+    if (force || text !== lastStatus) {
+      statusEl.textContent = text;
+      lastStatus = text;
+    }
+  }
+
+  function showToast(message, tone = "", duration = 1700) {
+    clearTimeout(toastTimer);
+    toastEl.textContent = message;
+    toastEl.className = "toast show" + (tone ? " " + tone : "");
+    toastTimer = setTimeout(() => {
+      toastEl.className = "toast" + (tone ? " " + tone : "");
+    }, duration);
+  }
+
+  // ---------- canvas sizing and drawing ----------
+
+  function resizeCanvas() {
+    const rect = board.getBoundingClientRect();
+    cw = Math.max(1, rect.width);
+    ch = Math.max(1, rect.height);
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(cw * dpr);
+    canvas.height = Math.round(ch * dpr);
+  }
+
+  function roundedRect(x, y, w, h, radius) {
+    const r = Math.min(radius, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function starPath(cx, cy, outer, inner) {
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const radius = i % 2 === 0 ? outer : inner;
+      const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+      const px = cx + Math.cos(angle) * radius;
+      const py = cy + Math.sin(angle) * radius;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  }
+
+  function drawBoard(now, dt) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cw, ch);
+
+    const background = ctx.createRadialGradient(cw * 0.5, ch * 0.18, 0, cw * 0.5, ch * 0.3, Math.max(cw, ch) * 0.9);
+    background.addColorStop(0, "#0d1830");
+    background.addColorStop(0.62, "#080e1d");
+    background.addColorStop(1, "#04070e");
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, cw, ch);
+
+    if (!gridW || !gridH) return;
+
+    const padding = Math.max(7, Math.min(cw, ch) * 0.016);
+    cell = Math.min((cw - padding * 2) / gridW, (ch - padding * 2) / gridH);
+    ox = (cw - cell * gridW) / 2;
+    oy = (ch - cell * gridH) / 2;
+
+    // Floor tiles, with a barely-there checker pattern for texture.
+    for (let y = 0; y < gridH; y++) {
+      for (let x = 0; x < gridW; x++) {
+        if (maze[y][x] !== 0) continue;
+        const x0 = ox + x * cell;
+        const y0 = oy + y * cell;
+        ctx.fillStyle = (x + y) % 2 === 0 ? "#0b1428" : "#091120";
+        ctx.fillRect(x0, y0, cell + 0.5, cell + 0.5);
+      }
+    }
+
+    // Faint halo around the floor area.
+    ctx.save();
+    ctx.strokeStyle = "rgba(92, 154, 255, 0.08)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(ox + 0.5, oy + 0.5, cell * gridW - 1, cell * gridH - 1);
+    ctx.restore();
+
+    // Walls.
+    const wallGradient = ctx.createLinearGradient(0, oy, 0, oy + cell * gridH);
+    wallGradient.addColorStop(0, "#263d66");
+    wallGradient.addColorStop(0.55, "#1a2c4b");
+    wallGradient.addColorStop(1, "#132039");
+    const inset = Math.max(0.5, cell * 0.055);
+    const radius = Math.max(1.5, cell * 0.17);
+    for (let y = 0; y < gridH; y++) {
+      for (let x = 0; x < gridW; x++) {
+        if (maze[y][x] !== 1) continue;
+        const x0 = ox + x * cell + inset;
+        const y0 = oy + y * cell + inset;
+        roundedRect(x0, y0, cell - inset * 2, cell - inset * 2, radius);
+        ctx.fillStyle = wallGradient;
+        ctx.fill();
+        ctx.strokeStyle = "rgba(160, 201, 255, 0.055)";
+        ctx.lineWidth = 0.75;
+        ctx.stroke();
+      }
+    }
+
+    // Glow from the exit + shards, painted under the objects.
+    const exitX = ox + (exit.x + 0.5) * cell;
+    const exitY = oy + (exit.y + 0.5) * cell;
+    const exitGlow = ctx.createRadialGradient(exitX, exitY, 0, exitX, exitY, cell * 1.9);
+    exitGlow.addColorStop(0, exitOpen ? "rgba(94, 234, 212, 0.22)" : "rgba(120, 140, 180, 0.08)");
+    exitGlow.addColorStop(1, "rgba(94, 234, 212, 0)");
+    ctx.fillStyle = exitGlow;
+    ctx.fillRect(exitX - cell * 2, exitY - cell * 2, cell * 4, cell * 4);
+
+    for (const shard of shards) {
+      if (shard.collected) continue;
+      const sx = ox + (shard.x + 0.5) * cell;
+      const sy = oy + (shard.y + 0.5) * cell;
+      const halo = ctx.createRadialGradient(sx, sy, 0, sx, sy, cell * 0.95);
+      halo.addColorStop(0, "rgba(255, 209, 102, 0.24)");
+      halo.addColorStop(1, "rgba(255, 209, 102, 0)");
+      ctx.fillStyle = halo;
+      ctx.fillRect(sx - cell, sy - cell, cell * 2, cell * 2);
+    }
+
+    // Exit ring.
+    const pulse = 0.5 + 0.5 * Math.sin(now * 0.0032);
+    ctx.save();
+    ctx.translate(exitX, exitY);
+    ctx.rotate(now * (exitOpen ? 0.0011 : 0.00035));
+
+    ctx.strokeStyle = exitOpen ? "rgba(94, 234, 212, 0.95)" : "rgba(129, 149, 184, 0.55)";
+    ctx.lineWidth = Math.max(2, cell * 0.085);
+    ctx.lineCap = "round";
+    ctx.setLineDash([cell * 0.27, cell * 0.19]);
+    if (exitOpen) {
+      ctx.shadowColor = "rgba(94, 234, 212, 0.9)";
+      ctx.shadowBlur = cell * 0.55;
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, cell * 0.34, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(exitX, exitY);
+    if (exitOpen) {
+      const pulseRadius = cell * (0.19 + pulse * 0.05);
+      ctx.fillStyle = "rgba(94, 234, 212, 0.85)";
+      ctx.shadowColor = "rgba(94, 234, 212, 0.95)";
+      ctx.shadowBlur = cell * 0.7;
+      ctx.beginPath();
+      ctx.arc(0, 0, pulseRadius, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // A small padlock marks a sealed gate.
+      ctx.strokeStyle = "rgba(190, 204, 228, 0.62)";
+      ctx.lineWidth = Math.max(1, cell * 0.06);
+      ctx.beginPath();
+      ctx.arc(0, -cell * 0.045, cell * 0.115, Math.PI, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = "rgba(190, 204, 228, 0.42)";
+      roundedRect(-cell * 0.155, -cell * 0.04, cell * 0.31, cell * 0.22, cell * 0.045);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Shards.
+    for (let i = 0; i < shards.length; i++) {
+      const shard = shards[i];
+      if (shard.collected) continue;
+      const sx = ox + (shard.x + 0.5) * cell;
+      const sy = oy + (shard.y + 0.5) * cell + Math.sin(now * 0.0028 + shard.phase) * cell * 0.055;
+      const rotation = Math.sin(now * 0.0017 + shard.phase) * 0.14;
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.rotate(rotation);
+      ctx.shadowColor = "rgba(255, 209, 102, 0.85)";
+      ctx.shadowBlur = cell * 0.55;
+      ctx.fillStyle = "#ffd166";
+      starPath(0, 0, cell * 0.235, cell * 0.105);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "rgba(255, 250, 225, 0.9)";
+      starPath(0, 0, cell * 0.09, cell * 0.04);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Player: smooth glide between tiles.
+    const ease = 1 - Math.exp(-dt / 38);
+    render.x += (player.x - render.x) * ease;
+    render.y += (player.y - render.y) * ease;
+    const px = ox + (render.x + 0.5) * cell;
+    const py = oy + (render.y + 0.5) * cell;
+    const bob = Math.sin(now * 0.005) * cell * 0.018;
+
+    ctx.save();
+    const playerGlow = ctx.createRadialGradient(px, py, 0, px, py, cell * 0.85);
+    playerGlow.addColorStop(0, "rgba(103, 232, 249, 0.34)");
+    playerGlow.addColorStop(1, "rgba(103, 232, 249, 0)");
+    ctx.fillStyle = playerGlow;
+    ctx.fillRect(px - cell, py - cell, cell * 2, cell * 2);
+
+    ctx.shadowColor = "rgba(103, 232, 249, 0.95)";
+    ctx.shadowBlur = cell * 0.55;
+    ctx.fillStyle = "#dffcff";
+    ctx.beginPath();
+    ctx.arc(px, py + bob, cell * 0.245, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.strokeStyle = "rgba(103, 232, 249, 0.9)";
+    ctx.lineWidth = Math.max(1, cell * 0.035);
+    ctx.beginPath();
+    ctx.arc(px, py + bob, cell * 0.315, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Tiny pupils look toward the last horizontal movement.
+    const look = Math.max(-1, Math.min(1, player.x - render.x));
+    ctx.fillStyle = "#06202b";
+    ctx.beginPath();
+    ctx.arc(px - cell * 0.075 + look * cell * 0.025, py + bob - cell * 0.025, cell * 0.038, 0, Math.PI * 2);
+    ctx.arc(px + cell * 0.075 + look * cell * 0.025, py + bob - cell * 0.025, cell * 0.038, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function frame(now) {
+    const dt = Math.min(64, Math.max(0, now - lastFrame));
+    lastFrame = now;
+    updateHeld(now);
+    updateHud();
+    updateStatus();
+    drawBoard(now, dt);
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- boot ----------
+
+  if (typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(resizeCanvas).observe(board);
+  }
+  window.addEventListener("resize", resizeCanvas);
+
+  loadLevel(0);
+  requestAnimationFrame(frame);
+
+  // Small, read-only test surface for automated smoke checks.
+  window.__mazeGame = {
+    version: "1.0.0",
+    getState() {
+      return {
+        version: "1.0.0",
+        level: level + 1,
+        levelCount: LEVELS.length,
+        cols: gridW,
+        rows: gridH,
+        grid: maze.map((row) => row.slice()),
+        player: { x: player.x, y: player.y },
+        exit: { x: exit.x, y: exit.y },
+        shards: shards.map((shard) => ({ x: shard.x, y: shard.y, collected: shard.collected })),
+        exitOpen,
+        phase,
+        moves,
+        elapsedMs: Math.round(clockMs()),
+        toast: toastEl.textContent,
+        status: statusEl.textContent
+      };
+    },
+    press(key) {
+      document.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+      document.dispatchEvent(new KeyboardEvent("keyup", { key, bubbles: true, cancelable: true }));
+    }
+  };
+})();
+</script>
+</body>
+</html>
