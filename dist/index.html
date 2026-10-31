@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#050608" />
+  <meta name="description" content="Ashen Vow — a three-act 3D boss rush built around parry timing." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23050608'/%3E%3Cpath d='M32 8 56 32 32 56 8 32Z' fill='none' stroke='%23c3a46b' stroke-width='2'/%3E%3Cpath d='M32 22 42 32 32 42 22 32Z' fill='%23c3a46b'/%3E%3C/svg%3E" />
+  <title>Ashen Vow — A Boss Rush</title>
+  <script type="module" crossorigin src="./assets/index-B_JKWbnT.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BMMGfur_.css">
+</head>
+<body>
+  <canvas id="scene" aria-label="Ashen Vow game view"></canvas>
+  <div class="scene-fx" aria-hidden="true">
+    <div class="grain"></div>
+    <div class="vignette"></div>
+    <div id="damageFlash"></div>
+    <div id="parryFlash"></div>
+  </div>
+
+  <div id="boot" class="boot">
+    <div class="boot-mark"></div>
+    <p>Kindling the arena</p>
+    <div class="boot-line"><i></i></div>
+  </div>
+
+  <main id="hud" class="hud is-hidden" aria-live="polite">
+    <header class="hud-top">
+      <div class="act-badge">
+        <span class="act-kicker">ACT <b id="actNumber">I</b></span>
+        <span class="act-name" id="actName">THE FIRST GATE</span>
+      </div>
+
+      <div id="bossPlate" class="boss-plate">
+        <div class="boss-heading">
+          <span class="boss-epithet" id="bossEpithet">KEEPER OF THE FIRST GATE</span>
+          <span class="boss-name" id="bossName">THE ASHEN WARDEN</span>
+        </div>
+        <div class="boss-bar">
+          <div id="bossHpGhost" class="boss-hp-ghost"></div>
+          <div id="bossHp" class="boss-hp"></div>
+          <div class="boss-bar-ornament"></div>
+        </div>
+        <div class="boss-meta">
+          <span id="bossPhase">PHASE I</span>
+          <span id="bossStagger" class="boss-stagger">STAGGERED</span>
+        </div>
+      </div>
+
+      <div class="run-readout">
+        <div><span class="readout-label">VOW</span><b id="timer">00:00</b></div>
+        <div><span class="readout-label">PARRY</span><b id="parryCount">0</b></div>
+      </div>
+    </header>
+
+    <div class="reticle" id="reticle"><i></i></div>
+
+    <div id="parryPrompt" class="parry-prompt">
+      <div class="parry-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44"></circle></svg></div>
+      <span>PARRY</span>
+      <small>F / RIGHT CLICK</small>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <div id="combo" class="combo"><b id="comboNum">2</b><span>HIT</span></div>
+
+    <div class="hud-bottom">
+      <section class="player-panel">
+        <div class="player-sigil" id="playerSigil"><span></span></div>
+        <div class="bars">
+          <div class="bar-row hp-row">
+            <span class="bar-label">VITALITY</span>
+            <div class="bar-track"><div id="hpGhost" class="bar-ghost"></div><div id="hpBar" class="bar-fill hp"></div></div>
+            <b id="hpText">100</b>
+          </div>
+          <div class="bar-row stamina-row">
+            <span class="bar-label">STAMINA</span>
+            <div class="bar-track"><div id="staminaBar" class="bar-fill stamina"></div></div>
+          </div>
+          <div class="flask-row">
+            <span class="flask-label">EMBER FLASKS</span>
+            <div id="flasks" class="flasks">
+              <i class="flask full"></i><i class="flask full"></i><i class="flask full"></i>
+            </div>
+            <span class="flask-key">R</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="control-hints">
+        <span><kbd>WASD</kbd> MOVE</span>
+        <span><kbd>LMB</kbd> STRIKE</span>
+        <span><kbd>RMB</kbd> PARRY</span>
+        <span><kbd>SHIFT</kbd> ROLL</span>
+        <span><kbd>Q</kbd> LOCK</span>
+      </section>
+    </div>
+
+    <div id="lockBadge" class="lock-badge"><i></i> LOCKED</div>
+    <div id="bossOffscreen" class="boss-offscreen"><i></i></div>
+  </main>
+
+  <section id="menu" class="screen menu-screen is-active">
+    <div class="menu-shade"></div>
+    <div class="menu-frame">
+      <div class="menu-topline">
+        <span>OMGITHUB PRESENTS</span>
+        <span>THREE ACTS · ONE VOW</span>
+      </div>
+      <div class="menu-main">
+        <div class="title-block">
+          <p class="eyebrow"><span></span> A BOSS RUSH IN THREE ACTS</p>
+          <h1>ASHEN<br /><em>VOW</em></h1>
+          <p class="lede">The gate remembers every blade that broke against it.<br />Learn the rhythm. Answer with steel.</p>
+          <button id="startBtn" class="primary-btn" type="button">
+            <span class="btn-glow"></span>
+            <span class="btn-text">ENTER THE COURT</span>
+            <span class="btn-key">↵</span>
+          </button>
+          <p class="menu-note">Headphones recommended · Mouse + keyboard or touch</p>
+        </div>
+
+        <aside class="menu-aside">
+          <p class="aside-title">THE COURT AWAITS</p>
+          <ol class="boss-list">
+            <li class="is-current"><span class="numeral">I</span><div><b>THE ASHEN WARDEN</b><small>Keeper of the First Gate</small></div><i class="seal"></i></li>
+            <li><span class="numeral">II</span><div><b>THE PALE CHORISTER</b><small>Voice Beneath the Vault</small></div><i class="seal"></i></li>
+            <li><span class="numeral">III</span><div><b>THE HOLLOW KING</b><small>The Vow That Would Not Die</small></div><i class="seal"></i></li>
+          </ol>
+          <div class="parry-card">
+            <div class="parry-icon"><span></span></div>
+            <div>
+              <b>THE PARRY</b>
+              <p>Strike the instant their weapon blooms white. Break their guard. Take their life.</p>
+            </div>
+          </div>
+          <div class="menu-controls">
+            <span><kbd>W A S D</kbd><em>Move</em></span>
+            <span><kbd>MOUSE</kbd><em>Look</em></span>
+            <span><kbd>LMB</kbd><em>Strike</em></span>
+            <span><kbd>RMB</kbd><em>Parry</em></span>
+            <span><kbd>SHIFT</kbd><em>Roll</em></span>
+            <span><kbd>Q</kbd><em>Lock on</em></span>
+          </div>
+        </aside>
+      </div>
+      <div class="menu-footer">
+        <span id="bestRun">BEST VOW —</span>
+        <span class="footer-mark">A · V</span>
+        <span>BUILT IN THREE.JS</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="bossIntro" class="overlay boss-intro">
+    <div class="intro-rule"></div>
+    <p id="introAct" class="intro-act">ACT I</p>
+    <h2 id="introName">THE ASHEN WARDEN</h2>
+    <p id="introEpithet" class="intro-epithet">KEEPER OF THE FIRST GATE</p>
+    <div class="intro-rule small"></div>
+  </section>
+
+  <section id="deathScreen" class="overlay result-screen death-screen">
+    <p class="result-kicker">THE VOW REMAINS</p>
+    <h2>YOU DIED</h2>
+    <p id="deathTip" class="result-copy">The white glint is the promise. Answer it sooner.</p>
+    <div class="result-actions">
+      <button id="retryBtn" class="primary-btn" type="button"><span class="btn-text">RISE AGAIN</span><span class="btn-key">R</span></button>
+      <button id="quitBtn" class="ghost-btn" type="button">ABANDON VOW</button>
+    </div>
+  </section>
+
+  <section id="victoryScreen" class="overlay result-screen victory-screen">
+    <p class="result-kicker">THE COURT IS SILENT</p>
+    <h2>VOW BROKEN</h2>
+    <p class="result-copy">Three thrones empty. One blade still standing.</p>
+    <div class="victory-stats">
+      <div><span>VOW TIME</span><b id="finalTime">00:00</b></div>
+      <div><span>PARRIES</span><b id="finalParries">0</b></div>
+      <div><span>DEATHS</span><b id="finalDeaths">0</b></div>
+      <div><span>RANK</span><b id="finalRank">S</b></div>
+    </div>
+    <div class="result-actions">
+      <button id="againBtn" class="primary-btn" type="button"><span class="btn-text">BEGIN A NEW VOW</span><span class="btn-key">↵</span></button>
+      <button id="victoryQuitBtn" class="ghost-btn" type="button">RETURN TO GATE</button>
+    </div>
+  </section>
+
+  <section id="pauseScreen" class="overlay pause-screen">
+    <p class="result-kicker">THE WORLD HOLDS ITS BREATH</p>
+    <h2>PAUSED</h2>
+    <div class="result-actions">
+      <button id="resumeBtn" class="primary-btn" type="button"><span class="btn-text">RETURN TO BATTLE</span><span class="btn-key">ESC</span></button>
+      <button id="pauseQuitBtn" class="ghost-btn" type="button">ABANDON VOW</button>
+    </div>
+    <p class="pause-hint">RMB / F — PARRY · SHIFT / SPACE — ROLL · R — EMBER FLASK</p>
+  </section>
+
+  <button id="pauseTouchBtn" class="pause-touch-btn" data-action="pause" type="button" aria-label="Pause">II</button>
+
+  <div id="touchControls" class="touch-controls" aria-hidden="true">
+    <div id="joystick" class="joystick"><div id="joystickKnob" class="joystick-knob"></div></div>
+    <div class="touch-right">
+      <button class="touch-btn parry-btn" data-action="parry" type="button"><b>PARRY</b><small>F</small></button>
+      <button class="touch-btn dodge-btn" data-action="dodge" type="button"><b>ROLL</b><small>⇧</small></button>
+      <button class="touch-btn heavy-btn" data-action="heavy" type="button"><b>HEAVY</b><small>K</small></button>
+      <button class="touch-btn attack-btn" data-action="attack" type="button"><b>STRIKE</b><small>J</small></button>
+      <button class="touch-btn lock-btn" data-action="lock" type="button"><b>LOCK</b></button>
+      <button class="touch-btn flask-btn" data-action="flask" type="button"><b>FLASK</b></button>
+    </div>
+    <div id="cameraZone" class="camera-zone"></div>
+  </div>
+
+  <div id="rotateNotice" class="rotate-notice">
+    <span>TURN THE DEVICE</span>
+    <p>Ashen Vow plays best in landscape.</p>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "name": "ashen-vow",
+  "version": "1.0.0",
+  "description": "A three-act 3D boss rush built around parry timing.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3002",
+    "build": "vite build --base ./",
+    "preview": "vite preview --host 0.0.0.0 --port 3002"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lasseondev/PlayGround.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lasseondev/PlayGround/issues"
+  },
+  "homepage": "https://github.com/lasseondev/PlayGround#readme",
+  "dependencies": {
+    "@fontsource/cinzel": "^5.2.6",
+    "@fontsource/eb-garamond": "^5.2.6",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.7"
+  },
+  "private": true
+}
