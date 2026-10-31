@@ -1,0 +1,97 @@
+{
+  "name": "Tony Hawk Pro Skater Skate Park",
+  "version": "1.0",
+  "design_for": "2-minute trick run",
+  "target_skater": "Professional",
+  
+  "geometry": {
+    "total_area": {
+      "width": 50,
+      "length": 40,
+      "height": 12
+    },
+    "surfaces": {
+      "riding_surface": {
+        "material": "polyurethane-coated_concrete",
+        "roughness": 0.8,
+        "friction_coefficient": 0.6
+      },
+      "safety_areas": {
+        "padding_thickness": 0.3,
+        "padding_material": "foam"
+      }
+    }
+  },
+  
+  "key_features": [
+    {
+      "name": "Entrance_Rail",
+      "type": "horizontal_bar",
+      "position": {"x": 5, "y": 1, "z": 5},
+      "dimensions": {"length": 20, "diameter": 0.1},
+      "description": "Starting trick area - push-ups and slides"
+    },
+    {
+      "name": "Vertical_Ramp",
+      "type": "vertical_wall",
+      "position": {"x": 25, "y": 6, "z": 20},
+      "dimensions": {"width": 15, "height": 12, "depth": 5},
+      "features": ["K-gap", "flatbar_approach"],
+      "description": "Main air trick element"
+    },
+    {
+      "name": "Half_Pipe",
+      "type": "pool",
+      "position": {"x": 40, "y": 0, "z": 35},
+      "dimensions": {"radius": 8, "height": 6},
+      "description": "Manual and flow tricks"
+    },
+    {
+      "name": "Flatbar_Complex",
+      "type": "rail_system",
+      "position": {"x": 10, "y": 2, "z": 40},
+      "dimensions": {"length": 25, "diameter": 0.15},
+      "features": ["boulderslide_cap", "triple_crossover"],
+      "description": "Technical trick section"
+    }
+  ],
+  
+  "trick_sequence": {
+    "total_duration": 120,
+    "phases": [
+      {
+        "name": "Warmup",
+        "duration": 30,
+        "difficulty": "Easy",
+        "location": "entrance_rail"
+      },
+      {
+        "name": "Main_Sequence",
+        "duration": 60,
+        "difficulty": "Expert",
+        "locations": ["vertical_ramp", "half_pipe", "flatbar_complex"]
+      },
+      {
+        "name": "Finale",
+        "duration": 30,
+        "difficulty": "Medium",
+        "location": "vertical_ramp"
+      }
+    ]
+  },
+  
+  "skater_requirements": {
+    "deck_size": {"width": 8, "length": 32},
+    "max_height": 6,
+    "trick_types": [" Ollie", "Air", "Flip", "Grab", "Manual", "Slide"],
+    "difficulty_range": ["Beginner", "Intermediate", "Expert"]
+  },
+  
+  "rendering_spec": {
+    "style": "photorealistic_tony_hawk",
+    "lighting": "daytime_cinematic",
+    "camera": "dynamic_skater_eye",
+    "texture_quality": "high_poly",
+    "animation_style": "fluid_1950s_physics"
+  }
+}
