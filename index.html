@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#070a12" />
+  <title>NEON RIDER — Sunset City</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23070a12'/%3E%3Cpath d='M13 44l13-25h7l-6 14h14l3-7h7l-9 18h-7l3-6H25l-5 12z' fill='%2331e6ff'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/src/style.css?v=4" />
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div id="fx-vignette"></div>
+  <div id="fx-speed"></div>
+  <div id="fx-flash"></div>
+
+  <div id="hud" class="hidden">
+    <div class="hud-left">
+      <div class="brand"><span class="brand-mark">◆</span> NEON RIDER</div>
+      <div class="cash" id="cash">$0</div>
+      <div class="stars" id="stars" aria-label="wanted level">
+        <i>★</i><i>★</i><i>★</i><i>★</i><i>★</i>
+      </div>
+    </div>
+
+    <div class="mission" id="missionPanel">
+      <div class="mission-head">
+        <span id="missionLabel">DELIVERY 01 / 10</span>
+        <span id="timer" class="timer">60.0</span>
+      </div>
+      <div class="timerbar"><i id="timerFill"></i></div>
+      <div class="mission-foot">
+        <span><b id="distance">76</b> M</span>
+        <span class="dot">•</span>
+        <span id="multiplier">PAYOUT x1.0</span>
+      </div>
+    </div>
+
+    <div class="hud-right">
+      <div class="timechip" id="timeChip">DUSK</div>
+      <button class="iconbtn" id="muteBtn" aria-label="Toggle sound" title="Sound (M)">♪</button>
+    </div>
+
+    <div class="minimap-wrap">
+      <canvas id="minimap" width="512" height="512"></canvas>
+      <div class="map-label"><span>SUNSET CITY</span><span id="zone">DOWNTOWN</span></div>
+    </div>
+
+    <div class="speedo-wrap">
+      <canvas id="speedo" width="320" height="320"></canvas>
+    </div>
+
+    <div class="bars">
+      <div class="bar"><label>HEALTH</label><div class="track"><i id="healthFill"></i></div></div>
+      <div class="bar"><label>BOOST</label><div class="track boost"><i id="boostFill"></i></div></div>
+    </div>
+
+    <div class="hint">W/S THROTTLE · A/D STEER · SHIFT BOOST · SPACE DRIFT · T TIME · ESC PAUSE</div>
+
+    <div class="toast" id="toast">
+      <b id="toastTitle"></b>
+      <span id="toastSub"></span>
+    </div>
+  </div>
+
+  <div id="touch" class="hidden">
+    <div id="steerPad"><div class="stick" id="stick"></div><span>STEER</span></div>
+    <div class="touch-right">
+      <button id="btnBrake">BRAKE</button>
+      <button id="btnBoost">BOOST</button>
+      <button id="btnGas">GAS</button>
+    </div>
+  </div>
+
+  <div id="overlay" class="screen">
+    <div class="menu">
+      <div class="eyebrow"><span></span> SUNSET CITY // OPEN WORLD <span></span></div>
+      <h1><em>NEON</em><strong>RIDER</strong></h1>
+      <p class="tagline">Ten packages. One city. Zero speed limits.</p>
+
+      <div class="facts">
+        <div><b>81</b><span>CITY BLOCKS</span></div>
+        <div><b>24/7</b><span>LIVE TRAFFIC</span></div>
+        <div><b>5★</b><span>WANTED SYSTEM</span></div>
+        <div><b>∞</b><span>FREE RIDE</span></div>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl"><kbd>W</kbd><kbd>S</kbd><span>THROTTLE / BRAKE</span></div>
+        <div class="ctrl"><kbd>A</kbd><kbd>D</kbd><span>STEER</span></div>
+        <div class="ctrl"><kbd>SHIFT</kbd><span>BOOST</span></div>
+        <div class="ctrl"><kbd>SPACE</kbd><span>DRIFT</span></div>
+        <div class="ctrl"><kbd>T</kbd><span>TIME OF DAY</span></div>
+        <div class="ctrl"><kbd>M</kbd><span>MUTE</span></div>
+      </div>
+
+      <div class="start-row">
+        <button id="startBtn" class="start-btn">Start</button>
+        <div class="best"><span>BEST RUN</span><b id="bestCash">$0</b></div>
+      </div>
+      <div class="foot">HEADPHONES RECOMMENDED · AUDIO STARTS ON RIDE</div>
+    </div>
+
+    <aside class="brief">
+      <div class="brief-kicker">TONIGHT'S CONTRACT</div>
+      <div class="brief-title">THE <em>NIGHT</em> SHIFT</div>
+      <p>Run ten packages across Sunset City before the clock runs out. Chain deliveries to grow your payout, dodge traffic, and keep the cops off your tail.</p>
+      <div class="brief-rule"></div>
+      <ul>
+        <li><i>01</i> Follow the pink beam</li>
+        <li><i>02</i> Beat the timer, bank the cash</li>
+        <li><i>03</i> Chaos raises your wanted level</li>
+      </ul>
+      <div class="brief-stamp">RIDE FAST<br />STAY FREE</div>
+    </aside>
+  </div>
+
+  <div id="pause" class="modal hidden">
+    <div class="modal-card">
+      <div class="eyebrow">ENGINE IDLING</div>
+      <h2>PAUSED</h2>
+      <div class="modal-actions">
+        <button id="resumeBtn" class="start-btn small">Resume</button>
+        <button id="quitBtn" class="ghost-btn">Back to menu</button>
+      </div>
+      <div class="foot">PRESS ESC TO CONTINUE</div>
+    </div>
+  </div>
+
+  <div id="wreck" class="modal hidden">
+    <div class="wreck-card">
+      <div class="wreck-kicker">SIGNAL LOST</div>
+      <h2>WRECKED</h2>
+      <p id="wreckSub">You lost $150 and your pride.</p>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
