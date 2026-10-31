@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Mario Kart Style Racer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/styles.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon.es.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body>
+    <div id="start-screen">
+        <button id="start-button">Start Racing!</button>
+    </div>
+    
+    <div id="game-container"></div>
+    
+    <div id="score">Score: 0</div>
+    
+    <div id="controls">
+        <h3>Controls:</h3>
+        <ul>
+            <li><strong>W/A/S/D</strong> or <strong>Arrow Keys</strong>: Move</li>
+            <li><strong>Space</strong>: Nitro Boost</li>
+            <li><strong>Drift</strong>: Turn while moving (automatic)</li>
+        </ul>
+    </div>
+    
+    <div id="info">
+        <h3>Game Info</h3>
+        <p>3D Mario Kart-style racing</p>
+        <p>Drift to get extra speed!</p>
+        <p>Collect power-ups to gain advantages</p>
+    </div>
+    
+    <div id="game-over">
+        <h2>Game Over!</h2>
+        <p>Your final score: <span id="final-score">0</span></p>
+        <button id="restart-button">Play Again</button>
+    </div>
+    
+    <script type="module">
+        // Game is automatically instantiated when DOM is loaded
+        // Import from the distributed build
+        import('/dist/Game.js').then(module => {
+            // Game class is automatically instantiated when DOM is loaded
+            // in the module itself
+        }).catch(error => {
+            console.error('Failed to load game:', error);
+        });
+    </script>
+</body>
+</html>

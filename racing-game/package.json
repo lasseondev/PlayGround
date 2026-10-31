@@ -1,0 +1,95 @@
+{
+  "name": "mario-kart-3d-racer",
+  "version": "1.0.0",
+  "description": "3D Mario Kart-style racer with drifting mechanics and realistic physics",
+  "main": "dist/Game.js",
+  "scripts": {
+    "start": "node scripts/dev.js",
+    "dev": "node scripts/dev.js",
+    "build": "node scripts/build.js",
+    "test": "node scripts/test.js",
+    "serve": "node scripts/serve.js",
+    "lint": "eslint src/",
+    "format": "prettier --write src/",
+    "prebuild": "npm run lint",
+    "postbuild": "echo 'Build complete!'",
+    "preinstall": "node scripts/check-deps.js"
+  },
+  "keywords": [
+    "3d",
+    "racing",
+    "kart",
+    "drift",
+    "mario-kart",
+    "physics",
+    "game",
+    "webgl",
+    "threejs"
+  ],
+  "author": "OpenCode Agent",
+  "license": "MIT",
+  "homepage": "https://github.com/lasseondev/PlayGround/racing-game",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lasseondev/PlayGround.git",
+    "directory": "racing-game"
+  },
+  "bugs": {
+    "url": "https://github.com/lasseondev/PlayGround/issues"
+  },
+  "dependencies": {
+    "three": "^0.184.0",
+    "cannon-es": "^0.20.0",
+    "gsap": "^3.13.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10",
+    "terser": "^5.31.0",
+    "jest": "^29.7.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "chokidar": "^3.0.3"
+  },
+  "engines": {
+    "node": ">= 18.0.0",
+    "npm": ">= 8.0.0"
+  },
+  "browserslist": [
+    "> 0.25%",
+    "not dead",
+    "not op_mini all"
+  ],
+  "type": "module",
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/lasseondev"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "OpenCode Agent",
+      "role": "Developer",
+      "email": "agent@opencode.ai"
+    }
+  ],
+  "categories": [
+    "games",
+    "3d-games",
+    "racing-games",
+    "browser-games"
+  ],
+  "keywords": [
+    "3d",
+    "racing",
+    "kart",
+    "drift",
+    "mario-kart",
+    "physics",
+    "game",
+    "webgl",
+    "threejs",
+    "javascript",
+    "html5"
+  ]
+}
