@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#070a0f" />
+  <meta name="description" content="The Sunken Sanctum — a 3D Zelda-style dungeon adventure with three trials, sword combat, and a stone Warden." />
+  <title>The Sunken Sanctum — A Dungeon Adventure</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%23d7b56d' d='M32 4l7 18 19 3-14 13 4 20-16-9-16 9 4-20L6 25l19-3z'/%3E%3Ccircle cx='32' cy='31' r='7' fill='%234fe3cf'/%3E%3C/svg%3E" />
+  <link rel="preload" href="assets/fonts/cinzel.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three.module.js",
+        "three/addons/": "./vendor/addons/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <svg class="svg-defs" width="0" height="0" aria-hidden="true" focusable="false">
+      <defs>
+        <radialGradient id="heartGrad" cx="34%" cy="28%" r="82%">
+          <stop offset="0" stop-color="#ffe9b8"/>
+          <stop offset="0.42" stop-color="#ffae68"/>
+          <stop offset="0.76" stop-color="#e45d48"/>
+          <stop offset="1" stop-color="#a83336"/>
+        </radialGradient>
+      </defs>
+    </svg>
+    <canvas id="game" aria-label="The Sunken Sanctum game view"></canvas>
+    <div id="vignette" aria-hidden="true"></div>
+    <div id="grain" aria-hidden="true"></div>
+    <div id="damage-flash" aria-hidden="true"></div>
+    <div id="heal-flash" aria-hidden="true"></div>
+
+    <!-- ============ HUD ============ -->
+    <div id="hud" class="hud is-hidden" aria-live="off">
+      <div class="hud-corner hud-tl">
+        <div class="hearts" id="hearts" aria-label="Health"></div>
+        <div class="sigil-track" id="sigil-track" aria-label="Sigils claimed">
+          <div class="sigil" data-sigil="stone" title="Sigil of Stone">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3l11 9-4 15H9L5 12z"/><path class="glyph" d="M16 9l5 5-5 9-5-9z"/></svg>
+            <span>Stone</span>
+          </div>
+          <div class="sigil" data-sigil="flame" title="Sigil of Flame">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3l11 9-4 15H9L5 12z"/><path class="glyph" d="M16 8c4 5 5 7 5 10a5 5 0 01-10 0c0-3 2-5 5-10z"/></svg>
+            <span>Flame</span>
+          </div>
+          <div class="sigil" data-sigil="courage" title="Sigil of Courage">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3l11 9-4 15H9L5 12z"/><path class="glyph" d="M16 8v13m-5-8l5-5 5 5m-8 12h6"/></svg>
+            <span>Courage</span>
+          </div>
+        </div>
+        <div class="torch-fuel is-hidden" id="torch-fuel" title="Eternal flame">
+          <svg viewBox="0 0 44 44" aria-hidden="true">
+            <circle class="ring-bg" cx="22" cy="22" r="18"/>
+            <circle class="ring-fg" id="torch-ring" cx="22" cy="22" r="18"/>
+          </svg>
+          <span class="flame-glyph" aria-hidden="true">✦</span>
+        </div>
+      </div>
+
+      <div class="hud-corner hud-tr">
+        <div class="map-frame">
+          <canvas id="minimap" width="240" height="240" aria-label="Dungeon map"></canvas>
+          <div class="map-compass" aria-hidden="true">N</div>
+          <div class="map-frame-line" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="room-banner" id="room-banner" aria-live="polite">
+        <span class="banner-kicker"></span>
+        <h2 class="banner-title"></h2>
+        <span class="banner-rule"></span>
+      </div>
+
+      <div class="bossbar is-hidden" id="bossbar">
+        <div class="bossbar-head">
+          <span class="bossbar-kicker">Sanctum Guardian</span>
+          <span class="bossbar-name">The Hollow Warden</span>
+        </div>
+        <div class="bossbar-track"><div class="bossbar-fill" id="bossbar-fill"></div><div class="bossbar-pips" id="bossbar-pips"></div></div>
+      </div>
+
+      <div class="quest" id="quest">
+        <span class="quest-mark" aria-hidden="true"></span>
+        <div>
+          <span class="quest-kicker">Quest</span>
+          <p id="quest-text">Recover the three sigils.</p>
+        </div>
+      </div>
+
+      <div class="prompt is-hidden" id="prompt">
+        <span class="prompt-key" id="prompt-key">E</span>
+        <span class="prompt-text" id="prompt-text"></span>
+      </div>
+
+      <div class="toast-stack" id="toasts" aria-live="polite"></div>
+
+      <div class="lock-hint is-hidden" id="lock-hint"><span class="mouse-icon" aria-hidden="true"></span> Click to capture the mouse</div>
+    </div>
+
+    <!-- ============ TITLE ============ -->
+    <section id="title-screen" class="screen title-screen" aria-label="Title screen">
+      <div class="frame-corner tl" aria-hidden="true"></div>
+      <div class="frame-corner tr" aria-hidden="true"></div>
+      <div class="frame-corner bl" aria-hidden="true"></div>
+      <div class="frame-corner br" aria-hidden="true"></div>
+      <div class="title-inner">
+        <p class="eyebrow">A dungeon of three trials</p>
+        <div class="title-ornament" aria-hidden="true"><span></span><i>✦</i><span></span></div>
+        <h1 class="game-title">The Sunken<br /><em>Sanctum</em></h1>
+        <p class="title-lede">
+          Below the desert lies a hall the sun forgot. Three sigils bind the Warden's gate —
+          stone, flame, and courage. Take up your blade, solve the trials, and claim the Sunstone.
+        </p>
+        <button id="start-btn" class="btn btn-primary" aria-label="Play">
+          <span class="btn-glow" aria-hidden="true"></span>
+          <span class="btn-label">Enter the Sanctum</span>
+          <svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+        </button>
+        <div class="title-controls">
+          <div class="control-chip"><span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>Move</span></div>
+          <div class="control-chip"><span class="keys"><kbd class="mouse">L</kbd><kbd>J</kbd></span><span>Strike</span></div>
+          <div class="control-chip"><span class="keys"><kbd>Shift</kbd></span><span>Dodge</span></div>
+          <div class="control-chip"><span class="keys"><kbd>E</kbd></span><span>Interact</span></div>
+        </div>
+        <p class="title-foot">Mouse to look · <kbd>Esc</kbd> to pause · Headphones recommended</p>
+      </div>
+      <div class="title-scrim" aria-hidden="true"></div>
+    </section>
+
+    <!-- ============ PAUSE ============ -->
+    <section id="pause-screen" class="screen modal-screen is-hidden" aria-label="Paused">
+      <div class="panel pause-panel">
+        <p class="eyebrow">The sanctum waits</p>
+        <h2>Paused</h2>
+        <div class="ornament-small" aria-hidden="true"><span></span><i>✦</i><span></span></div>
+        <div class="pause-actions">
+          <button id="resume-btn" class="btn btn-primary" aria-label="Resume"><span class="btn-label">Resume</span><svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+          <button id="mute-btn" class="btn btn-ghost"><span class="btn-label">Sound: On</span></button>
+          <button id="restart-btn" class="btn btn-ghost">Restart journey</button>
+        </div>
+        <div class="pause-controls">
+          <div><kbd>WASD</kbd><span>Move</span></div>
+          <div><kbd>J</kbd> / <kbd>Left click</kbd><span>Strike</span></div>
+          <div><kbd>Shift</kbd> / <kbd>Space</kbd><span>Dodge roll</span></div>
+          <div><kbd>E</kbd><span>Interact</span></div>
+          <div><kbd>Esc</kbd><span>Pause</span></div>
+          <div><kbd>M</kbd><span>Mute</span></div>
+        </div>
+        <p class="panel-foot">The trials remember your progress.</p>
+      </div>
+    </section>
+
+    <!-- ============ END SCREENS ============ -->
+    <section id="death-screen" class="screen modal-screen end-screen is-hidden" aria-label="You fell">
+      <div class="panel end-panel death-panel">
+        <p class="eyebrow">The dark takes its due</p>
+        <h2>You Have Fallen</h2>
+        <div class="ornament-small" aria-hidden="true"><span></span><i>✦</i><span></span></div>
+        <p class="end-copy">The sanctum remembers the trials you have already broken. Rise, and try again.</p>
+        <div class="end-stats" id="death-stats"></div>
+        <button id="retry-btn" class="btn btn-primary" aria-label="Play"><span class="btn-label">Rise Again</span><svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </section>
+
+    <section id="victory-screen" class="screen modal-screen end-screen is-hidden" aria-label="Victory">
+      <div class="panel end-panel victory-panel">
+        <div class="sunstone" aria-hidden="true"><span></span></div>
+        <p class="eyebrow">The trial is ended</p>
+        <h2>The Sunstone</h2>
+        <p class="end-copy">The Warden falls. Light returns to the Sunken Sanctum, and the desert above remembers the sun.</p>
+        <div class="end-stats" id="victory-stats"></div>
+        <button id="again-btn" class="btn btn-primary" aria-label="Play"><span class="btn-label">Walk the Halls Again</span><svg class="btn-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+        <p class="panel-foot">Thank you for playing.</p>
+      </div>
+    </section>
+
+    <!-- ============ TOUCH ============ -->
+    <div id="touch-controls" class="touch-controls is-hidden" aria-hidden="true">
+      <div class="joystick-zone" id="joystick-zone">
+        <div class="joystick-base"><div class="joystick-knob" id="joystick-knob"></div></div>
+      </div>
+      <div class="touch-actions">
+        <button class="touch-btn touch-interact" id="touch-interact" aria-label="Interact"><svg viewBox="0 0 24 24"><path d="M8 13V5a2 2 0 014 0v6m0-2a2 2 0 114 0v2m0-1a2 2 0 114 0v5a6 6 0 01-6 6h-2a6 6 0 01-5-3l-3-5a2 2 0 013-2l2 3"/></svg></button>
+        <button class="touch-btn touch-roll" id="touch-roll" aria-label="Dodge"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 108-8H8m0 0l4-3M8 4l4 3"/></svg></button>
+        <button class="touch-btn touch-attack" id="touch-attack" aria-label="Strike"><svg viewBox="0 0 24 24"><path d="M14 4l6 6-9 9-4 1 1-4 6-6M4 20l4-4"/></svg></button>
+      </div>
+    </div>
+
+    <!-- ============ LOADING ============ -->
+    <div id="loading" class="loading">
+      <div class="loading-rune" aria-hidden="true"><span></span></div>
+      <p>Awakening the sanctum</p>
+      <span class="loading-sub">Carving stone · lighting torches</span>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
