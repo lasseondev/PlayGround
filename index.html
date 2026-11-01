@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#08070d" />
+  <meta name="description" content="The Hollow Vault — a hand-built 2D Zelda-style dungeon with locked doors, small keys, a Boss Key, and a final boss." />
+  <title>The Hollow Vault — A Boss-Key Dungeon</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b0910'/%3E%3Cpath d='M16 6l9 16H7z' fill='none' stroke='%23d8b45a' stroke-width='2'/%3E%3Ccircle cx='16' cy='18' r='3' fill='%23d8b45a'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="stage">
+    <canvas id="game" width="512" height="288" aria-label="The Hollow Vault, a top-down dungeon adventure"></canvas>
+
+    <div id="touch" aria-hidden="true">
+      <div id="stick">
+        <div id="knob"></div>
+      </div>
+      <div id="buttons">
+        <button id="btn-use" type="button" aria-label="Interact">E</button>
+        <button id="btn-attack" type="button" aria-label="Sword">ATK</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
