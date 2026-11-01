@@ -7,11 +7,13 @@ run_with_timing() {
     /usr/bin/time -p "$@"
 }
 
-# Create deployment output directory
-mkdir -p "/home/runner/work/PlayGround/PlayGround/dist"
+# Initialize project directory
+PROJECT_DIR="/home/runner/work/PlayGround/PlayGround"
+DIST_DIR="$PROJECT_DIR/dist"
 
-# Write deployment output JSON as specified
-run_with_timing /usr/bin/printf '%s' "{\"project\":\"/home/runner/work/PlayGround/PlayGround\",\"directory\":\"/home/runner/work/PlayGround/PlayGround/dist\"}" > "/home/runner/work/_temp/omgithub-web/deployment-output.json"
+# Create deployment output directory and write deployment output JSON
+mkdir -p "/home/runner/work/_temp/omgithub-web"
+run_with_timing /usr/bin/printf '%s' "{\"project\":\"$PROJECT_DIR\",\"directory\":\"$DIST_DIR\"}" > "/home/runner/work/_temp/omgithub-web/deployment-output.json"
 
 # Change to project directory
 cd "$(dirname "$0")"
@@ -57,5 +59,7 @@ fi
 # The actual server startup logic is handled by the controller's start-project.sh
 
 echo "Start script completed. Server startup should be handled by the controller."
-echo "Project directory: $(pwd)"
-echo "Dist directory: $(pwd)/dist"
+echo "Project directory: $PROJECT_DIR"
+echo "Dist directory: $DIST_DIR"
+echo "Server ready to serve on port 3000"
+echo "Deployment output written to /home/runner/work/_temp/omgithub-web/deployment-output.json"
