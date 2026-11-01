@@ -9,8 +9,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: 'main.js',
-        game: 'main.js'
+        main: 'main.js'
       }
     }
   },

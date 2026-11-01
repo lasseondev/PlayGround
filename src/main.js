@@ -49,7 +49,7 @@ let currentPlayer = 'human';
 let isGameRunning = false;
 
 // Initialize game
-declare function initGame() {
+function initGame() {
   if (game) {
     game.destroy();
   }
@@ -70,14 +70,14 @@ declare function initGame() {
 }
 
 // Game loop integration
-declare function updateGame(deltaTime) {
+function updateGame(deltaTime) {
   if (game && isGameRunning) {
     game.update(deltaTime);
   }
 }
 
 // Handle window resize
-declare function handleResize() {
+function handleResize() {
   const canvas = document.getElementById(config.canvas);
   if (canvas) {
     canvas.width = window.innerWidth;

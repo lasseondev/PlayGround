@@ -432,7 +432,8 @@ class Game {
   }
 
   renderUnit(unit, color) {
-    const ctx = this.engine.ctx;\n    ctx.save();
+    const ctx = this.engine.ctx;
+    ctx.save();
 
     ctx.fillStyle = color || '#ffffff';
     ctx.fillRect(unit.location.x - 16, unit.location.y - 16, 32, 32);
