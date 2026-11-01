@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket League 1v1 vs Bot</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border: 3px solid #fff;
+            border-radius: 8px;
+            background: linear-gradient(to bottom, #4a90e2 0%, #7b68ee 100%);
+        }
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            z-index: 20;
+            display: none;
+        }
+        .button {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        .button:hover {
+            background: #ff5252;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 20px;
+        }
+        .mobile-button {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 20px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            user-select: none;
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .mobile-button {
+                display: block;
+            }
+            #controls {
+                width: 100%;
+                justify-content: space-around;
+                padding: 0 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="ui">
+            <div>Score: <span id="playerScore">0</span> - <span id="botScore">0</span></div>
+            <div id="timer">Time: 3:00</div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div id="gameOver">
+            <div>Game Over!</div>
+            <div id="winner"></div>
+            <button class="button" onclick="restartGame()">Play Again</button>
+        </div>
+        
+        <div id="controls">
+            <button class="mobile-button" id="leftBtn">←</button>
+            <button class="mobile-button" id="rightBtn">→</button>
+            <button class="mobile-button" id="boostBtn">⚡</button>
+        </div>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game variables
+        let player, bot, ball, keys, gameState, score, timer, lastTime, gameLoop;
+        
+        // Initialize game
+        function init() {
+            // Player car (blue)
+            player = {
+                x: 100,
+                y: canvas.height / 2,
+                width: 40,
+                height: 30,
+                color: '#4A90E2',
+                velocityX: 0,
+                velocityY: 0,
+                boost: 100,
+                maxBoost: 100,
+                boostCharge: 0,
+                speed: 0,
+                angle: 0
+            };
+            
+            // Bot car (red)  
+            bot = {
+                x: canvas.width - 100,
+                y: canvas.height / 2,
+                width: 40,
+                height: 30,
+                color: '#E24A4A',
+                velocityX: 0,
+                velocityY: 0,
+                boost: 100,
+                maxBoost: 100,
+                boostCharge: 0,
+                speed: 0,
+                angle: 0,
+                difficulty: 'medium'
+            };
+            
+            // Ball
+            ball = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                radius: 8,
+                velocityX: 0,
+                velocityY: 0,
+                velocityZ: 0,
+                friction: 0.98,
+                bounce: 0.8,
+                color: '#FFD700'
+            };
+            
+            // Game state
+            keys = {};
+            gameState = 'playing'; // playing, paused, gameover
+            score = { player: 0, bot: 0 };
+            timer = 180; // 3 minutes
+            lastTime = 0;
+            
+            // Update UI
+            document.getElementById('playerScore').textContent = score.player;
+            document.getElementById('botScore').textContent = score.bot;
+            document.getElementById('timer').textContent = `Time: ${Math.floor(timer/60)}:${(timer % 60).toString().padStart(2, '0')}`;
+            
+            // Hide game over screen
+            document.getElementById('gameOver').style.display = 'none';
+            
+            // Start game loop
+            if (gameLoop) cancelAnimationFrame(gameLoop);
+            gameLoop = requestAnimationFrame(update);
+            
+            // Initialize ball with random velocity
+            resetBall();
+        }
+        
+        // Reset ball to center with random velocity
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.velocityX = (Math.random() - 0.5) * 3;
+            ball.velocityY = (Math.random() - 0.5) * 2;
+            ball.velocityZ = 0;
+        }
+        
+        // Update game logic
+        function update(timestamp) {
+            if (gameState !== 'playing') return;
+            
+            const deltaTime = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+            
+            // Update timer
+            timer -= 1;
+            if (timer <= 0) {
+                endGame();
+                return;
+            }
+            document.getElementById('timer').textContent = `Time: ${Math.floor(timer/60)}:${(timer % 60).toString().padStart(2, '0')}`;
+            
+            // Update player
+            updatePlayer(deltaTime);
+            
+            // Update bot
+            updateBot(deltaTime);
+            
+            // Update ball
+            updateBall(deltaTime);
+            
+            // Check collisions
+            checkCollisions();
+            
+            // Render
+            render();
+            
+            // Continue loop
+            gameLoop = requestAnimationFrame(update);
+        }
+        
+        // Update player movement
+        function updatePlayer(deltaTime) {
+            const moveSpeed = 4;
+            const boostSpeed = 8;
+            
+            // Horizontal movement
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                player.velocityX -= moveSpeed;
+                player.angle = Math.PI; // Face left
+            } else if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                player.velocityX += moveSpeed;
+                player.angle = 0; // Face right
+            }
+            
+            // Boost
+            if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' ']) && player.boost > 0) {
+                player.velocityY -= boostSpeed * 1.5;
+                player.boost -= 5;
+            }
+            
+            // Apply gravity and friction
+            player.velocityY += 9.8 * deltaTime; // Gravity
+            player.velocityX *= 0.95; // Air friction
+            player.velocityY *= 0.95;
+            
+            // Update position
+            player.x += player.velocityX;
+            player.y += player.velocityY;
+            
+            // Check boundaries
+            player.x = Math.max(20, Math.min(canvas.width - 60, player.x));
+            player.y = Math.max(20, Math.min(canvas.height - 20, player.y));
+            
+            // Update boost charge
+            player.boostCharge += 0.5;
+            if (player.boostCharge > 100) {
+                player.boostCharge = 100;
+            }
+            player.maxBoost = 100 + (player.boostCharge / 2);
+        }
+        
+        // Update bot AI
+        function updateBot(deltaTime) {
+            const moveSpeed = 3 + Math.random() * 2;
+            const botDifficulty = bot.difficulty === 'easy' ? 0.7 : botDifficulty === 'hard' ? 1.3 : 1.0;
+            
+            // Track the ball
+            const targetX = ball.x;
+            const targetY = ball.y;
+            
+            // Move towards ball
+            if (bot.x < targetX) {
+                bot.velocityX += moveSpeed * botDifficulty;
+                bot.angle = 0;
+            } else if (bot.x > targetX) {
+                bot.velocityX -= moveSpeed * botDifficulty;
+                bot.angle = Math.PI;
+            }
+            
+            // Simple AI: boost towards ball if nearby
+            const distanceToBall = Math.sqrt(Math.pow(bot.x - ball.x, 2) + Math.pow(bot.y - ball.y, 2));
+            if (distanceToBall < 200 && bot.boost > 10) {
+                const angleToBall = Math.atan2(targetY - bot.y, targetX - bot.x);
+                bot.velocityX += Math.cos(angleToBall) * 3;
+                bot.velocityY += Math.sin(angleToBall) * 3;
+                bot.boost -= 5;
+            }
+            
+            // Apply physics
+            bot.velocityY += 9.8 * deltaTime;
+            bot.velocityX *= 0.95;
+            bot.velocityY *= 0.95;
+            
+            // Update position
+            bot.x += bot.velocityX;
+            bot.y += bot.velocityY;
+            
+            // Check boundaries
+            bot.x = Math.max(20, Math.min(canvas.width - 60, bot.x));
+            bot.y = Math.max(20, Math.min(canvas.height - 20, bot.y));
+        }
+        
+        // Update ball physics
+        function updateBall(deltaTime) {
+            // Apply friction
+            ball.velocityX *= ball.friction;
+            ball.velocityY *= ball.friction;
+            
+            // Update position
+            ball.x += ball.velocityX;
+            ball.y += ball.velocityY;
+            
+            // Check goal boundaries
+            if (ball.x < 40) {
+                // Player scored (ball went behind player)
+                score.bot++;
+                updateScoreDisplay();
+                resetBall();
+            } else if (ball.x > canvas.width - 40) {
+                // Bot scored (ball went behind bot)
+                score.player++;
+                updateScoreDisplay();
+                resetBall();
+            }
+            
+            // Keep ball in vertical bounds
+            if (ball.y < 20) {
+                ball.y = 20;
+                ball.velocityY *= -0.7;
+            } else if (ball.y > canvas.height - 20) {
+                ball.y = canvas.height - 20;
+                ball.velocityY *= -0.7;
+            }
+        }
+        
+        // Check car-car collisions
+        function checkCollisions() {
+            const distance = Math.sqrt(Math.pow(player.x - bot.x, 2) + Math.pow(player.y - bot.y, 2));
+            const minDistance = 35;
+            
+            if (distance < minDistance) {
+                // Push cars apart
+                const angle = Math.atan2(bot.y - player.y, bot.x - player.x);
+                const pushForce = 5;
+                
+                player.velocityX -= Math.cos(angle) * pushForce;
+                player.velocityY -= Math.sin(angle) * pushForce;
+                bot.velocityX += Math.cos(angle) * pushForce;
+                bot.velocityY += Math.sin(angle) * pushForce;
+            }
+            
+            // Ball-car collisions
+            const ballToPlayerDist = Math.sqrt(Math.pow(ball.x - player.x, 2) + Math.pow(ball.y - player.y, 2));
+            if (ballToPlayerDist < 30) {
+                const angle = Math.atan2(player.y - ball.y, player.x - ball.x);
+                const pushForce = 8;
+                
+                ball.velocityX += Math.cos(angle) * pushForce;
+                ball.velocityY += Math.sin(angle) * pushForce;
+                ball.velocityZ = 0;
+            }
+            
+            const ballToBotDist = Math.sqrt(Math.pow(ball.x - bot.x, 2) + Math.pow(ball.y - bot.y, 2));
+            if (ballToBotDist < 30) {
+                const angle = Math.atan2(bot.y - ball.y, bot.x - ball.x);
+                const pushForce = 8;
+                
+                ball.velocityX += Math.cos(angle) * pushForce;
+                ball.velocityY += Math.sin(angle) * pushForce;
+                ball.velocityZ = 0;
+            }
+        }
+        
+        // Update score display
+        function updateScoreDisplay() {
+            document.getElementById('playerScore').textContent = score.player;
+            document.getElementById('botScore').textContent = score.bot;
+            
+            // Check for winner
+            if (score.player >= 3 || score.bot >= 3) {
+                endGame();
+            }
+        }
+        
+        // End game
+        function endGame() {
+            gameState = 'gameover';
+            cancelAnimationFrame(gameLoop);
+            
+            const winner = score.player >= 3 ? 'Player' : 'Bot';
+            document.getElementById('winner').textContent = `${winner} Wins! ${score.player} - ${score.bot}`;
+            document.getElementById('gameOver').style.display = 'block';
+        }
+        
+        // Restart game
+        function restartGame() {
+            // Reset scores
+            score.player = 0;
+            score.bot = 0;
+            timer = 180;
+            init();
+        }
+        
+        // Render game
+        function render() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw goal areas
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([10, 10]);
+            ctx.beginPath();
+            ctx.moveTo(40, 0);
+            ctx.lineTo(40, canvas.height);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - 40, 0);
+            ctx.lineTo(canvas.width - 40, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw goal nets (simple lines)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.height; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(40, i);
+                ctx.lineTo(canvas.width - 40, i);
+                ctx.stroke();
+            }
+            
+            // Draw ball
+            ctx.fillStyle = ball.color;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = ball.color;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // Draw bot car
+            ctx.save();
+            ctx.translate(bot.x, bot.y);
+            ctx.fillStyle = bot.color;
+            ctx.fillRect(-bot.width/2, -bot.height/2, bot.width, bot.height);
+            ctx.restore();
+            
+            // Draw player car
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.fillStyle = player.color;
+            ctx.fillRect(-player.width/2, -player.height/2, player.width, player.height);
+            ctx.restore();
+            
+            // Draw boost meters
+            ctx.fillStyle = '#333';
+            ctx.fillRect(10, 450, 150, 20);
+            ctx.fillStyle = '#4A90E2';
+            ctx.fillRect(10, 450, (player.boost / player.maxBoost) * 150, 20);
+            
+            ctx.fillStyle = '#333';
+            ctx.fillRect(600, 450, 150, 20);
+            ctx.fillStyle = '#E24A4A';
+            ctx.fillRect(600, 450, (bot.boost / bot.maxBoost) * 150, 20);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.fillText('Player Boost', 10, 470);
+            ctx.fillText('Bot Boost', 600, 470);
+        }
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        // Touch controls for mobile
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const boostBtn = document.getElementById('boostBtn');
+        
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys['ArrowLeft'] = true;
+        });
+        leftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys['ArrowLeft'] = false;
+        });
+        
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys['ArrowRight'] = true;
+        });
+        rightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys['ArrowRight'] = false;
+        });
+        
+        boostBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            keys['ArrowUp'] = true;
+        });
+        boostBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            keys['ArrowUp'] = false;
+        });
+        
+        // Prevent scrolling on mobile
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.id !== 'leftBtn' && e.target.id !== 'rightBtn' && e.target.id !== 'boostBtn') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // Start game when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
