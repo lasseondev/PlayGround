@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#101611" />
+  <title>Wildbound — Realms at War</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Marcellus+SC&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Wildbound home"><span class="brand-mark">✦</span><span>WILDBOUND</span></a>
+      <div class="chapter"><span class="live-dot"></span> THE ASHEN FRONT <span class="chapter-divider">/</span> SKIRMISH 01</div>
+      <button class="icon-button" id="sound-toggle" aria-label="Toggle sound" title="Sound on">♫</button>
+    </header>
+    <section class="game-layout">
+      <div class="battlefield-wrap">
+        <div class="map-label"><span class="map-pin">⌖</span> THORNVALE — THE OLD ROAD</div>
+        <canvas id="battlefield" aria-label="Interactive RTS battlefield"></canvas>
+        <div class="map-coordinates">DAY 03 <span>•</span> 14:32</div>
+        <div class="battle-tip" id="battle-tip"><span>✦</span> Select a unit, then right-click to command</div>
+        <div class="minimap-frame"><div class="minimap-title">WAR TABLE <span>↗</span></div><canvas id="minimap" width="156" height="104"></canvas></div>
+      </div>
+      <aside class="command-panel">
+        <div class="commander-row">
+          <div class="faction-crest" id="faction-crest">✦</div>
+          <div><div class="eyebrow">COMMANDING</div><div class="faction-name" id="faction-name">The Crown</div></div>
+          <button id="change-faction" class="change-faction" title="Choose another realm">⇄</button>
+        </div>
+        <div class="resource-strip">
+          <div class="resource"><span class="resource-icon gold">◆</span><div><b id="gold-count">260</b><small>GOLD</small></div></div>
+          <div class="resource"><span class="resource-icon wood">❖</span><div><b id="wood-count">180</b><small>LUMBER</small></div></div>
+          <div class="resource"><span class="resource-icon food">◉</span><div><b id="food-count">4 / 10</b><small>SUPPLY</small></div></div>
+        </div>
+        <div class="selection-card" id="selection-card">
+          <div class="empty-state"><span class="empty-crosshair">⌖</span><span>Select a unit or structure</span><small>YOUR ORDERS APPEAR HERE</small></div>
+        </div>
+        <div class="command-section">
+          <div class="section-heading"><span>COMMAND</span><span id="command-hint">—</span></div>
+          <div class="command-grid" id="command-grid"></div>
+        </div>
+        <div class="event-log"><div class="section-heading"><span>FIELD REPORT</span><span class="report-live">LIVE</span></div><div id="event-list"></div></div>
+        <footer class="panel-footer"><span>WILDBOUND <b>0.1.0</b></span><span>REALM OF THORNVALE</span></footer>
+      </aside>
+    </section>
+    <div class="mobile-controls" id="mobile-controls"><button data-action="move">MOVE</button><button data-action="attack">ATTACK</button></div>
+  </main>
+  <div class="overlay" id="start-overlay">
+    <div class="intro-card">
+      <div class="intro-kicker"><span>✦</span> A REALM ON THE EDGE</div>
+      <h1>THE OLD ROAD<br><em>CALLS FOR WAR.</em></h1>
+      <p>Three realms. One untamed frontier. Gather, build, and lead your forces through Thornvale.</p>
+      <div class="race-label">CHOOSE YOUR REALM</div>
+      <div class="race-options" id="race-options"></div>
+      <button class="begin-button" id="begin-button">TAKE THE FIELD <span>→</span></button>
+      <div class="intro-foot">A SMALL-SCALE REAL-TIME STRATEGY SKIRMISH</div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="game.js"></script>
+</body>
+</html>
