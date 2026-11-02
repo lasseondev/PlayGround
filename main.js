@@ -196,17 +196,30 @@ shadow.rotation.x=-Math.PI/2; shadow.position.y=.045; scene.add(shadow);
 const state = { running:false, ended:false, time:120, runStartedAt:0, score:0, combo:0, comboText:[], comboMultiplier:1, airTime:0, vy:0, airborne:false, speed:0, vx:0, x:0, z:16, grind:false, grindTime:0, lastTrick:0, toastTimer:0, jumpBuffer:0, audio:null, soundOn:true, bailCooldown:0 };
 const trickNames = { z:['KICKFLIP',250], x:['POP SHUVIT',200], c:['50-50 GRIND',350], q:['HEELFLIP',300], e:['360 SHUVIT',400] };
 let toastTimeout = 0;
+let hiddenAt = null;
 const formatScore = n => Math.floor(n).toString().padStart(6,'0').slice(-6);
+function resetComboLabel(){ comboEl.innerHTML='— <span>NO COMBO</span>'; }
 function renderScore(){ scoreEl.textContent=formatScore(state.score); }
-function flashTrick(name, points){ document.querySelector('#trickName').textContent=name; document.querySelector('#trickPoints').textContent=`+${Math.floor(points)}`; trickToast.classList.add('show'); clearTimeout(toastTimeout); toastTimeout=setTimeout(()=>trickToast.classList.remove('show'),1050); }
+function flashTrick(name, points){ document.querySelector('#trickName').textContent=name; document.querySelector('#trickPoints').textContent=typeof points==='number'?`+${Math.floor(points)}`:points; trickToast.classList.add('show'); clearTimeout(toastTimeout); toastTimeout=setTimeout(()=>trickToast.classList.remove('show'),1050); }
 function beep(freq=520,duration=.08){ if(!state.soundOn||!state.audio) return; try{const o=state.audio.createOscillator(),g=state.audio.createGain();o.type='triangle';o.frequency.value=freq;g.gain.setValueAtTime(.055,state.audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,state.audio.currentTime+duration);o.connect(g);g.connect(state.audio.destination);o.start();o.stop(state.audio.currentTime+duration);}catch{} }
 function startRun(){
-  state.running=true;state.ended=false;state.time=120;state.runStartedAt=performance.now();state.score=0;state.combo=0;state.comboText=[];state.comboMultiplier=1;state.speed=0;state.vx=0;state.x=0;state.z=16;state.vy=0;state.airborne=false;state.grind=false;state.grindTime=0;state.airTime=0;
-  rider.position.set(0,.02,16);rider.rotation.set(0,0,0);board.rotation.set(0,0,0);body.rotation.set(0,0,0);
-  startScreen.classList.add('hidden');endScreen.classList.add('hidden');statusText.textContent='PUSH TO BUILD SPEED'; renderScore();
-  if(!state.audio){try{state.audio=new (window.AudioContext||window.webkitAudioContext)();}catch{}}
+  state.running=true;state.ended=false;state.time=120;state.runStartedAt=performance.now();state.score=0;state.combo=0;state.comboText=[];state.comboMultiplier=1;state.speed=0;state.vx=0;state.x=0;state.z=16;state.vy=0;state.airborne=false;state.grind=false;state.grindTime=0;state.airTime=0;state.bailCooldown=0;
+  rider.position.set(0,.02,16);rider.rotation.set(0,0,0);board.rotation.set(0,0,0);body.rotation.set(0,0,0);board.userData.spin=0;shadow.material.opacity=.18;trickToast.classList.remove('show');
+  startScreen.classList.add('hidden');endScreen.classList.add('hidden');statusText.textContent='PUSH TO BUILD SPEED'; resetComboLabel(); renderScore();
+  if(!state.audio){try{state.audio=new (window.AudioContext||window.webkitAudioContext)();}catch{} }
+  document.querySelector('#finalScore').textContent='000000';
 }
-function finishRun(){state.running=false;state.ended=true;document.querySelector('#finalScore').textContent=formatScore(state.score);endScreen.classList.remove('hidden');statusText.textContent='SESSION COMPLETE';}
+function finishRun(){
+  state.running=false;state.ended=true;
+  const finalScore = formatScore(state.score);
+  document.querySelector('#finalScore').textContent = finalScore;
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      endScreen.classList.remove('hidden');
+    });
+  });
+  statusText.textContent='SESSION COMPLETE';
+}
 function beginJump(){ if(!state.running||state.airborne||state.grind)return; if(state.speed<1.6)state.speed=1.6;state.airborne=true;state.vy=6.7+Math.min(state.speed*.1,1.2);state.airTime=0;state.grind=false;statusText.textContent='AIRBORNE';beep(350,.08); }
 function doTrick(key){
   if(!state.running)return;
@@ -214,7 +227,7 @@ function doTrick(key){
     const nearRail=Math.abs(Math.abs(state.x)-2.4)<.8 && state.z>-18&&state.z<-2;
     const nearLedge=Math.abs(Math.abs(state.x)-5.4)<.8 && state.z>-9&&state.z<8;
     if((nearRail||nearLedge)&&(state.airborne||state.speed>3)){
-      state.grind=true;state.airborne=false;state.vy=0;state.grindTime=0;state.vy=0;state.combo++;state.comboText.push('50-50 GRIND');state.comboMultiplier=Math.min(8,state.comboMultiplier+1);flashTrick('50-50 GRIND',350*state.comboMultiplier);statusText.textContent='LOCKED IN';beep(620,.12);return;
+      state.grind=true;state.airborne=false;state.vy=0;state.grindTime=0;state.vy=0;state.combo++;state.comboText.push('50-50 GRIND');state.comboMultiplier=Math.min(8,state.comboMultiplier+1);flashTrick('50-50 GRIND','RIDE IT OUT');statusText.textContent='LOCKED IN';beep(620,.12);return;
     }
   }
   if(key==='c')return;
@@ -241,17 +254,27 @@ function land(){
 
 window.addEventListener('keydown',e=>{
   const key=e.key.toLowerCase(); if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(key))e.preventDefault(); keys.add(key);
-  if(key===' '||key==='arrowup')beginJump();
+  if(e.repeat)return;
+  if(key===' ')beginJump();
   if(['z','x','c','q','e'].includes(key))doTrick(key);
 });
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
 window.addEventListener('blur',()=>keys.clear());
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    keys.clear();
+    if(state.running&&hiddenAt===null)hiddenAt=performance.now();
+  }else if(hiddenAt!==null){
+    state.runStartedAt+=performance.now()-hiddenAt;
+    hiddenAt=null;
+  }
+});
 document.querySelector('#startBtn').addEventListener('click',startRun);
 document.querySelector('#restartBtn').addEventListener('click',startRun);
 document.querySelector('#soundBtn').addEventListener('click',()=>{state.soundOn=!state.soundOn;document.querySelector('#soundLabel').textContent=state.soundOn?'SOUND ON':'SOUND OFF';document.querySelector('.sound-icon').textContent=state.soundOn?'♪':'×';if(state.soundOn)beep(600,.08);});
 for(const button of document.querySelectorAll('.mobile-controls button')){
   const key=button.dataset.key;
-  const down=e=>{e.preventDefault();keys.add(key);if(key==='space')beginJump();else if(['z','x','c'].includes(key))doTrick(key);};
+  const down=e=>{e.preventDefault();keys.add(key);if(key==='space')beginJump();else if(['z','x','c','q','e'].includes(key))doTrick(key);};
   const up=e=>{e.preventDefault();keys.delete(key);};
   button.addEventListener('pointerdown',down);button.addEventListener('pointerup',up);button.addEventListener('pointercancel',up);button.addEventListener('pointerleave',up);
 }
