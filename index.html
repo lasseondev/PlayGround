@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#101114" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>VERT — Two Minute Run</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./style.css" />
+    <script type="importmap">
+      {"imports":{"three":"https://unpkg.com/three@0.169.0/build/three.module.js"}}
+    </script>
+  </head>
+  <body>
+    <main class="game-shell">
+      <div id="stage" class="stage" aria-label="3D skate park">
+        <div class="topbar">
+          <a class="wordmark" href="#" aria-label="Vert home"><span class="mark">V</span> VERT<span class="wordmark-dot">/</span></a>
+          <div class="session-label"><span class="live-dot"></span> STREET SESSION <span class="session-divider">/</span> FREE SKATE</div>
+          <button id="soundBtn" class="sound-btn" aria-label="Toggle sound"><span class="sound-icon">♪</span><span id="soundLabel">SOUND ON</span></button>
+        </div>
+
+        <section class="hud" aria-live="polite">
+          <div class="score-block">
+            <div class="eyebrow">SESSION SCORE</div>
+            <div id="score" class="score">000000</div>
+            <div id="combo" class="combo">— <span>NO COMBO</span></div>
+          </div>
+          <div class="timer-block">
+            <div class="eyebrow">TIME LEFT</div>
+            <div id="timer" class="timer">2:00</div>
+            <div class="timer-track"><div id="timerFill"></div></div>
+          </div>
+        </section>
+
+        <div class="location-tag"><span class="location-line"></span><div><span class="eyebrow">SPOT 01</span><strong>THE YARD</strong></div><span class="location-coordinate">34°03' N / 118°15' W</span></div>
+
+        <div id="trickToast" class="trick-toast" aria-live="polite"><span class="toast-kicker">TRICK</span><strong id="trickName">OLLIE</strong><span id="trickPoints">+100</span></div>
+
+        <div class="bottom-hud">
+          <div class="speed-wrap"><div class="speed-caption">SPEED <span id="speedValue">0</span><small>MPH</small></div><div class="speed-meter"><i id="speedNeedle"></i></div></div>
+          <div class="run-status"><span class="status-pip"></span><span id="statusText">READY TO ROLL</span></div>
+          <div class="control-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> MOVE <span class="hint-divider">·</span><kbd>SPACE</kbd> OLLIE <span class="hint-divider">·</span><kbd>Z</kbd><kbd>X</kbd> TRICKS <span class="hint-divider">·</span><kbd>C</kbd> GRIND</div>
+        </div>
+
+        <div id="startScreen" class="overlay">
+          <div class="intro-card">
+            <div class="intro-kicker"><span class="live-dot"></span> YOUR SESSION STARTS NOW</div>
+            <h1>MAKE<br /><span>IT</span> COUNT.</h1>
+            <p>Two minutes. One park. No reruns.<br />Link tricks, find your line, own the yard.</p>
+            <button id="startBtn" class="start-btn"><span>DROP IN</span><b>↗</b></button>
+            <div class="start-foot"><span>01 — 04</span><span>BEST LINE WINS</span></div>
+          </div>
+          <div class="overlay-note">A SESSION BUILT FOR THE LOVE OF THE RIDE</div>
+        </div>
+
+        <div id="endScreen" class="overlay hidden">
+          <div class="intro-card result-card">
+            <div class="intro-kicker"><span class="live-dot"></span> SESSION COMPLETE</div>
+            <h2>THAT'S<br /><span>A WRAP.</span></h2>
+            <p>Your two-minute run at The Yard.</p>
+            <div class="final-score"><span>FINAL SCORE</span><strong id="finalScore">000000</strong></div>
+            <button id="restartBtn" class="start-btn"><span>RUN IT BACK</span><b>↗</b></button>
+            <div class="start-foot"><span>THE YARD</span><span>KEEP PUSHING</span></div>
+          </div>
+        </div>
+
+        <div class="mobile-controls" aria-label="Touch controls">
+          <div class="dpad"><button data-key="a" aria-label="Steer left">◀</button><button data-key="d" aria-label="Steer right">▶</button></div>
+          <div class="action-pad"><button data-key="z" class="trick-touch">FLIP</button><button data-key="space" class="ollie-touch">OLLIE</button><button data-key="x" class="trick-touch">SHUV</button></div>
+        </div>
+        <div class="corner-label">EST. 1999 <span>✳</span> BUILT TO RIDE</div>
+      </div>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
