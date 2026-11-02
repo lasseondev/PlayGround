@@ -1,0 +1,25 @@
+{
+  "name": "dark-souls-boss-rush",
+  "version": "1.0.0",
+  "description": "3D Dark Souls-style boss rush with parry mechanics",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "echo 'Build completed successfully'"
+  },
+  "keywords": [
+    "dark-souls",
+    "boss-rush",
+    "parry",
+    "3d-game",
+    "webgl"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "three": "^0.158.0"
+  }
+}
