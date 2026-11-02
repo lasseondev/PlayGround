@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Dark Souls-style Boss Rush with Parry</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+        #canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 14px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .game-title {
+            font-size: 24px;
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .instruction {
+            color: #ccc;
+            margin: 5px 0;
+        }
+        .highlight {
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas"></div>
+    <div id="ui">
+        <div class="game-title">⚔️ DARK SOULS BOSS RUSH ⚔️</div>
+        <div class="instruction">WASD - Move</div>
+        <div class="instruction">SPACE - Jump</div>
+        <div class="instruction">E - Parry</div>
+        <div class="instruction">R - Reset</div>
+        <div class="instruction">ESC - Menu</div>
+        <div class="instruction">Ready for challenging boss encounters!</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/physics/RapierPhysics.js"></script>
+    
+    <script>
+        // Game initialization
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        
+        // Dark Souls atmosphere
+        scene.background = new THREE.Color(0x1a0f0f);
+        
+        // Lighting for Souls-style ambiance
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffaa00, 0.8);
+        directionalLight.position.set(10, 20, 5);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        scene.add(directionalLight);
+        
+        // Animated point lights for Souls atmosphere
+        const pointLight1 = new THREE.PointLight(0xff4444, 0.5, 50);
+        pointLight1.position.set(0, 10, 0);
+        scene.add(pointLight1);
+        
+        const pointLight2 = new THREE.PointLight(0x4444ff, 0.3, 40);
+        pointLight2.position.set(15, 5, -10);
+        scene.add(pointLight2);
+        
+        // Ground plane
+        const groundGeometry = new THREE.PlaneGeometry(200, 200);
+        const groundMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x808080,
+            emissive: 0x222222,
+            emissiveIntensity: 0.1
+        });
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+        
+        // Player character placeholder (will be replaced with actual Souls-style model)
+        const playerGeometry = new THREE.BoxGeometry(1, 2, 1);
+        const playerMaterial = new THREE.MeshPhongMaterial({ 
+            color: 0x8b4513,
+            emissive: 0x2a1a0a,
+            emissiveIntensity: 0.3
+        });
+        const player = new THREE.Mesh(playerGeometry, playerMaterial);
+        player.position.set(0, 1, 0);
+        player.castShadow = true;
+        scene.add(player);
+        
+        // Camera position
+        camera.position.set(0, 8, 15);
+        camera.lookAt(0, 1, 0);
+        
+        // Animation loop
+        const animate = () => {
+            requestAnimationFrame(animate);
+            
+            // Subtle camera movement for atmosphere
+            camera.position.x += Math.sin(Date.now() * 0.001) * 0.02;
+            camera.lookAt(0, 1, 0);
+            
+            // Animate point lights
+            const time = Date.now() * 0.001;
+            pointLight1.intensity = 0.5 + Math.sin(time * 2) * 0.2;
+            pointLight2.intensity = 0.3 + Math.sin(time * 3 + Math.PI) * 0.2;
+            
+            // Render
+            renderer.render(scene, camera);
+        };
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Start animation
+        animate();
+        
+        // Game state
+        const gameState = {
+            isPlaying: false,
+            score: 0,
+            currentBoss: 0,
+            parryCount: 0,
+            maxParryCount: 0
+        };
+        
+        // Simple input handling
+        const keys = {};
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true;
+            
+            // Parry action
+            if (e.code === 'KeyE') {
+                console.log(' Parry!');
+                gameState.parryCount++;
+                gameState.maxParryCount = Math.max(gameState.maxParryCount, gameState.parryCount);
+                
+                // Visual feedback for parry
+                const flash = new THREE.PointLight(0x00ff00, 2, 20);
+                flash.position.copy(player.position);
+                scene.add(flash);
+                setTimeout(() => scene.remove(flash), 200);
+            }
+            
+            // Reset game
+            if (e.code === 'KeyR') {
+                console.log(' Game reset');
+                gameState.parryCount = 0;
+                gameState.currentBoss = 0;
+                gameState.isPlaying = !gameState.isPlaying;
+            }
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+        });
+        
+        // Log game info
+        console.log('⚔️ 3D Dark Souls-style Boss Rush with Parry ⚔️');
+        console.log('Use WASD to move, SPACE to jump, E to Parry, R to reset');
+        console.log('Challenge yourself with difficult boss encounters!');
+        
+        // Add some console Easter eggs
+        setTimeout(() => {
+            if (Math.random() < 0.1) {
+                console.log('%c🎮 DEBUG MODE ACTIVATED 🎮', 'color: #ff0; font-size: 20px;');
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

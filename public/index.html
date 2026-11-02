@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dark Souls Boss Rush - 3D Game</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow: hidden;
+        background-color: #000;
+      }
+
+      .game-container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+      }
+
+      .canvas-container {
+        width: 100%;
+        height: 100%;
+      }
+
+      .ui-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px;
+        pointer-events: none;
+        z-index: 100;
+      }
+
+      .health-container {
+        position: relative;
+        width: 300px;
+        height: 30px;
+        background: linear-gradient(135deg, #ff6b6b, #ff4757);
+        border: 2px solid #fff;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+      }
+
+      .health-bar {
+        height: 100%;
+        background: linear-gradient(135deg, #ff6b6b, #ff4757);
+        border-radius: 13px;
+        transition: width 0.3s ease;
+      }
+
+      .health-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-weight: bold;
+        font-size: 12px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      }
+
+      .parry-indicator {
+        position: absolute;
+        top: 80px;
+        right: 20px;
+        width: 200px;
+        height: 60px;
+        background: rgba(0, 255, 255, 0.1);
+        border: 2px solid #00ffff;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #00ffff;
+        font-weight: bold;
+        font-size: 14px;
+        animation: pulse 2s infinite;
+      }
+
+      .parry-indicator.active {
+        background: rgba(0, 255, 255, 0.3);
+        box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+        animation: shake 0.5s infinite;
+      }
+
+      .boss-progress {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 400px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid #fff;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ffd700, #ffed4e);
+        transition: width 0.3s ease;
+      }
+
+      .game-over-screen, .victory-screen {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        color: white;
+        z-index: 200;
+        pointer-events: auto;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 40px;
+        border-radius: 20px;
+        border: 2px solid #ff6b6b;
+        box-shadow: 0 0 50px rgba(255, 107, 107, 0.5);
+      }
+
+      .game-over-screen h1, .victory-screen h1 {
+        font-size: 48px;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      }
+
+      .game-over-screen p, .victory-screen p {
+        font-size: 20px;
+        margin-bottom: 30px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .restart-button {
+        margin-top: 20px;
+        padding: 15px 30px;
+        background: linear-gradient(135deg, #ff6b6b, #ff4757);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .restart-button:hover {
+        transform: scale(1.05);
+      }
+
+      .instructions {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 12px;
+        pointer-events: none;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 5px;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+      }
+
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+
+      .loading-screen {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        color: white;
+        font-size: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

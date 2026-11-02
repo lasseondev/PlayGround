@@ -1,0 +1,26 @@
+{
+  "name": "dark-souls-boss-rush",
+  "version": "1.0.0",
+  "description": "3D Dark Souls-style boss rush with parry mechanics - Complete gameplay test",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "echo \"Running gameplay tests...\" && node -e \"require('./src/testRunner').runAllTests()\"",
+    "test:start": "echo \"Starting boss rush test...\" && node -e \"const runner = require('./src/testRunner'); await runner.runBossRushTests()\""
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^0.156.1",
+    "@dimforge/rapier3d-compat": "^0.17.0",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "vite": "^5.0.8",
+    "vite-plugin-glsl": "^1.1.2",
+    "@types/three": "^0.156.1",
+    "typescript": "^5.5.2",
+    "@vitejs/plugin-react": "^4.2.0"
+  }
+}
