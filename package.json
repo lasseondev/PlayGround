@@ -1,0 +1,18 @@
+{
+  "name": "super-cloud-hop-3d",
+  "private": true,
+  "version": "1.0.0",
+  "description": "A tiny 3D Mario-style platformer set on floating cloud islands.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3002",
+    "build": "vite build --base ./",
+    "preview": "vite preview --host 0.0.0.0 --port 3002"
+  },
+  "dependencies": {
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}

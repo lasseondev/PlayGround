@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#5ec8ff" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235ec8ff'/%3E%3Cpath d='M32 9l6.5 13.6 15 2-11 10.4 2.7 15-13.2-7.2-13.2 7.2 2.7-15-11-10.4 15-2z' fill='%23ffe873' stroke='%2310274a' stroke-width='3'/%3E%3C/svg%3E" />
+    <meta name="description" content="Super Cloud Hop 3D — a tiny Mario-style 3D platformer set on floating cloud islands." />
+    <title>Super Cloud Hop 3D</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game" aria-label="3D platformer game canvas"></canvas>
+
+      <div id="hud" class="hud is-hidden">
+        <div class="hud__row">
+          <div class="hud__left">
+            <div class="hearts" id="hearts" aria-label="Health">
+              <svg class="heart" viewBox="0 0 32 29" aria-hidden="true"><path d="M16 28S1 18.6 1 9.6C1 4.4 5.1 1 9.4 1c2.8 0 5.2 1.4 6.6 3.6C17.4 2.4 19.8 1 22.6 1 26.9 1 31 4.4 31 9.6 31 18.6 16 28 16 28Z"/></svg>
+              <svg class="heart" viewBox="0 0 32 29" aria-hidden="true"><path d="M16 28S1 18.6 1 9.6C1 4.4 5.1 1 9.4 1c2.8 0 5.2 1.4 6.6 3.6C17.4 2.4 19.8 1 22.6 1 26.9 1 31 4.4 31 9.6 31 18.6 16 28 16 28Z"/></svg>
+              <svg class="heart" viewBox="0 0 32 29" aria-hidden="true"><path d="M16 28S1 18.6 1 9.6C1 4.4 5.1 1 9.4 1c2.8 0 5.2 1.4 6.6 3.6C17.4 2.4 19.8 1 22.6 1 26.9 1 31 4.4 31 9.6 31 18.6 16 28 16 28Z"/></svg>
+            </div>
+            <div class="star-counter" id="star-counter" title="Lucky stars">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.8l2.9 6.1 6.7.9-4.9 4.7 1.2 6.7-5.9-3.2-5.9 3.2 1.2-6.7L2.4 8.8l6.7-.9L12 1.8z"/></svg>
+              <span id="star-count">0</span>
+            </div>
+          </div>
+
+          <div class="hud__center">
+            <div class="coin-counter" id="coin-counter">
+              <span class="coin-icon" aria-hidden="true"><span class="coin-icon__inner">$</span></span>
+              <span id="coin-count">0</span>
+              <span class="coin-counter__total">/ <span id="coin-total">0</span></span>
+            </div>
+            <div class="course-label">CLOUDTOP CASCADE</div>
+          </div>
+
+          <div class="hud__right">
+            <div class="timer" id="timer">0:00.0</div>
+            <button class="icon-btn" id="mute-btn" aria-label="Mute sound" title="Mute (M)">
+              <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zm-2.5-8.8v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+              <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4zm15.6 3l2.1-2.1-1.4-1.4-2.1 2.1-2.1-2.1-1.4 1.4 2.1 2.1-2.1 2.1 1.4 1.4 2.1-2.1 2.1 2.1 1.4-1.4-2.1-2.1z"/></svg>
+            </button>
+            <button class="icon-btn" id="pause-btn" aria-label="Pause game" title="Pause (Esc)">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zm8 0h4v16h-4z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="boss-bar is-hidden" id="boss-bar">
+          <span class="boss-bar__label">MEGA GOOMBA</span>
+          <div class="boss-bar__track"><div class="boss-bar__fill" id="boss-fill"></div></div>
+        </div>
+
+        <div class="toast is-hidden" id="toast"></div>
+        <div class="hint" id="hint">
+          <span><kbd>WASD</kbd> move</span>
+          <span><kbd>Space</kbd> jump</span>
+          <span><kbd>Shift</kbd> run</span>
+          <span><kbd>Drag</kbd> camera</span>
+        </div>
+      </div>
+
+      <div class="screen title-screen" id="title-screen">
+        <div class="title-screen__clouds" aria-hidden="true">
+          <span class="cloud cloud--1"></span><span class="cloud cloud--2"></span><span class="cloud cloud--3"></span><span class="cloud cloud--4"></span>
+        </div>
+        <div class="title-card">
+          <div class="title-card__eyebrow">A TINY 3D PLATFORMER</div>
+          <h1 class="logo" aria-label="Super Cloud Hop 3D">
+            <span class="logo__super">SUPER</span>
+            <span class="logo__main">CLOUD <em>HOP</em></span>
+            <span class="logo__three">3D</span>
+          </h1>
+          <p class="title-card__tag">Leap across the sky. Stomp the goombas. Raise the flag.</p>
+          <button class="btn btn--play" id="play-btn" aria-label="Play Game">
+            <span class="btn__shine"></span>
+            <span>PLAY GAME</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <div class="title-controls title-controls--keyboard">
+            <div class="control"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span>Move</span></div>
+            <div class="control"><kbd class="wide">SPACE</kbd><span>Jump</span></div>
+            <div class="control"><kbd class="wide">SHIFT</kbd><span>Run</span></div>
+            <div class="control"><kbd class="wide">DRAG</kbd><span>Camera</span></div>
+          </div>
+          <div class="title-controls title-controls--touch">
+            <div class="control"><span>Left stick</span><span>Move</span></div>
+            <div class="control"><span>JUMP</span><span>Jump</span></div>
+            <div class="control"><span>Drag sky</span><span>Camera</span></div>
+          </div>
+          <p class="title-card__foot">Collect coins · Find the lucky stars · Reach the flag</p>
+        </div>
+        <div class="build-stamp">CLOUDTOP CASCADE · COURSE 1</div>
+      </div>
+
+      <div class="screen pause-screen is-hidden" id="pause-screen">
+        <div class="panel">
+          <div class="panel__eyebrow">TAKE A BREATH</div>
+          <h2>PAUSED</h2>
+          <p class="panel__text">The clouds will wait for you.</p>
+          <div class="panel__actions">
+            <button class="btn" id="resume-btn">RESUME</button>
+            <button class="btn btn--ghost" id="restart-btn">RESTART COURSE</button>
+          </div>
+          <p class="panel__hint"><kbd>Esc</kbd> resume · <kbd>M</kbd> mute</p>
+        </div>
+      </div>
+
+      <div class="screen win-screen is-hidden" id="win-screen">
+        <div class="panel panel--win">
+          <div class="panel__eyebrow">COURSE CLEAR!</div>
+          <h2>YOU MADE IT!</h2>
+          <div class="result-stars" id="result-star-icons">
+            <svg viewBox="0 0 24 24" class="result-star" aria-hidden="true"><path d="M12 1.8l2.9 6.1 6.7.9-4.9 4.7 1.2 6.7-5.9-3.2-5.9 3.2 1.2-6.7L2.4 8.8l6.7-.9L12 1.8z"/></svg>
+            <svg viewBox="0 0 24 24" class="result-star" aria-hidden="true"><path d="M12 1.8l2.9 6.1 6.7.9-4.9 4.7 1.2 6.7-5.9-3.2-5.9 3.2 1.2-6.7L2.4 8.8l6.7-.9L12 1.8z"/></svg>
+            <svg viewBox="0 0 24 24" class="result-star" aria-hidden="true"><path d="M12 1.8l2.9 6.1 6.7.9-4.9 4.7 1.2 6.7-5.9-3.2-5.9 3.2 1.2-6.7L2.4 8.8l6.7-.9L12 1.8z"/></svg>
+          </div>
+          <div class="results">
+            <div class="result"><span>Coins</span><strong id="result-coins">0 / 0</strong></div>
+            <div class="result"><span>Time</span><strong id="result-time">0:00</strong></div>
+            <div class="result"><span>Lucky stars</span><strong id="result-stars">0 / 0</strong></div>
+          </div>
+          <p class="rank-line">RANK <strong id="result-rank">A</strong></p>
+          <div class="panel__actions">
+            <button class="btn" id="again-btn">PLAY AGAIN</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen lose-screen is-hidden" id="lose-screen">
+        <div class="panel panel--lose">
+          <div class="panel__eyebrow">OOF!</div>
+          <h2>TRY AGAIN!</h2>
+          <p class="panel__text">Those goombas got the better of you.</p>
+          <div class="panel__actions">
+            <button class="btn" id="retry-btn">RETRY FROM CHECKPOINT</button>
+            <button class="btn btn--ghost" id="lose-restart-btn">RESTART COURSE</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="touch-controls is-hidden" id="touch-controls">
+        <div class="joystick" id="joystick" aria-label="Movement joystick">
+          <div class="joystick__base"></div>
+          <div class="joystick__stick" id="joystick-stick"></div>
+        </div>
+        <button class="jump-btn" id="jump-btn" aria-label="Jump">JUMP</button>
+      </div>
+
+      <div class="vignette" aria-hidden="true"></div>
+    </div>
+
+    <noscript>This game needs JavaScript enabled.</noscript>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
