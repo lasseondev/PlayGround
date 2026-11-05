@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<meta name="theme-color" content="#101513" />
+<title>Nightshift — City Taxi</title><link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"}}</script>
+</head>
+<body>
+<div id="game"></div><div class="grain"></div>
+<div id="ui">
+ <header class="topbar"><div class="brand-mark">✳</div><div class="brand">NIGHTSHIFT<small>METRO CAB CO.</small></div><div class="live">● &nbsp;ON DUTY</div></header>
+ <section class="mission-card"><div class="eyebrow"><span class="mini-dot"></span><span id="mission-label">SHIFT BRIEFING</span><span class="mission-count" id="mission-count">01 / 05</span></div><h1 id="mission-title">Pick up your first fare</h1><p id="mission-copy">Follow the green beacon through the city.</p><div class="progress-track"><i id="progress"></i></div><div class="mission-foot"><span id="mission-distance">WAYPOINT &nbsp;—</span><span id="mission-status">READY WHEN YOU ARE</span></div></section>
+ <div class="speed-card"><div class="speed-read"><strong id="speed">000</strong><span>KM/H</span></div><div class="gear"><span>GEAR</span><b id="gear">N</b></div><div class="speed-line"><i id="speed-line"></i></div></div>
+ <div class="cash-card"><span class="cash-icon">$</span><div><small>SHIFT EARNINGS</small><strong id="cash">$000</strong></div><span class="cash-tip">+ fares<br>− damage</span></div>
+ <div class="map-wrap"><div class="map-head"><span>LIVE NAV</span><span>▣ &nbsp;METRO</span></div><canvas id="minimap" width="180" height="180"></canvas><div class="map-foot"><span class="map-you"></span> YOU <span class="map-target"></span> FARE</div></div>
+ <div class="toast" id="toast"></div><div class="prompt" id="prompt"><kbd>E</kbd><span>Pick up passenger</span></div>
+ <div class="help"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> DRIVE</span><span><kbd>SPACE</kbd> HAND BRAKE</span><span><kbd>E</kbd> INTERACT</span><span><kbd>P</kbd> PAUSE</span></div>
+ <div class="touch-controls"><button data-key="a">◀</button><button data-key="d">▶</button><button data-key="w">▲</button><button data-key="s">▼</button><button data-action="interact">E &nbsp; INTERACT</button><button data-action="pause">Ⅱ &nbsp; PAUSE</button></div>
+ <div id="start-screen" class="screen"><div class="screen-card"><div class="screen-kicker">METRO CAB CO. &nbsp; / &nbsp; NIGHT SHIFT 01</div><div class="title-wrap"><h2>THE CITY<br><em>IS YOURS.</em></h2><div class="title-stamp">24/7<br><b>RADIO</b></div></div><p>Five fares. One city. Keep your wheels clean, follow the beacon, and get every passenger home before the night runs out.</p><div class="start-meta"><span>01 <small>DRIVER</small></span><i></i><span>05 <small>FARES</small></span><i></i><span>∞ <small>STREETS</small></span></div><button id="start-button">START YOUR SHIFT <span>↗</span></button><div class="start-hint">WASD / ARROWS TO DRIVE &nbsp;·&nbsp; E TO PICK UP & DROPOFF</div></div></div>
+ <div id="pause-screen" class="screen hidden"><div class="screen-card pause-card"><div class="screen-kicker">METER ON HOLD</div><h2>SHIFT<br><em>PAUSED.</em></h2><p>Your passenger can wait. The city can't.</p><button id="resume-button">BACK TO THE ROAD <span>↗</span></button><div class="start-hint">PRESS P OR ESC TO RESUME</div></div></div>
+ <div id="end-screen" class="screen hidden"><div class="screen-card end-card"><div class="screen-kicker">METRO CAB CO. &nbsp; / &nbsp; SHIFT COMPLETE</div><h2>GOOD<br><em>DRIVING.</em></h2><p id="end-copy">The city got home safe tonight.</p><div class="final-earnings"><small>TOTAL SHIFT EARNINGS</small><strong id="final-cash">$000</strong></div><button id="again-button">DRIVE ANOTHER SHIFT <span>↗</span></button></div></div>
+</div>
+<script type="module" src="game.js"></script>
+</body></html>
