@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0a070d" />
+<meta name="description" content="Тень Аида — 2D рогалик о побеге из подземного мира. Сражайся, получай дары богов, умирай и становись сильнее." />
+<title>Тень Аида — рогалик о побеге</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230b0710'/%3E%3Cpath d='M32 8l4 16 16 4-16 4-4 16-4-16-16-4 16-4z' fill='%23e7c27d'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%23a42f34'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+  <canvas id="view" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- ============ HUD ============ -->
+  <div id="hud" class="hud hidden" aria-live="off">
+    <div class="hud-top">
+      <div class="depth-plate" id="hud-depth">
+        <span class="depth-biome" id="hud-biome">ТАРТАР</span>
+        <span class="depth-sep"></span>
+        <span class="depth-chamber" id="hud-chamber">ЗАЛ I</span>
+      </div>
+      <div class="top-actions">
+        <button id="btn-mute" class="icon-btn" aria-label="Звук" title="Звук (M)">
+          <svg viewBox="0 0 24 24" class="ico"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="sound-on" d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path class="sound-off" d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <button id="btn-pause" class="icon-btn" aria-label="Пауза" title="Пауза (Esc)">
+          <svg viewBox="0 0 24 24" class="ico"><path d="M8 5h3v14H8zM14 5h3v14h-3z" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="boss-bar" class="boss-bar hidden">
+      <div class="boss-head"><span id="boss-name">ЦЕРБЕР</span><span id="boss-tag">СТРАЖ СТИКСА</span></div>
+      <div class="boss-track"><div id="boss-fill" class="boss-fill"></div></div>
+    </div>
+
+    <div class="hud-bottom">
+      <div class="vitals">
+        <div id="hud-boons" class="boon-row"></div>
+        <div class="hp-block">
+          <div class="hp-label"><span>ЖИЗНЬ</span><span id="hud-hp-text">100 / 100</span></div>
+          <div class="hp-track">
+            <div id="hud-hp-fill" class="hp-fill"></div>
+            <div id="hud-hp-shield" class="hp-shield hidden"></div>
+          </div>
+        </div>
+      </div>
+      <div class="res-row">
+        <div class="res" title="Оболы"><span class="res-gem obol"></span><span id="hud-obols">0</span></div>
+        <div class="res" title="Тьма"><span class="res-gem dark"></span><span id="hud-dark">0</span></div>
+      </div>
+    </div>
+
+    <div class="ability-row" id="ability-row">
+      <div class="ability" data-ability="dash"><span class="ability-key">ПРОБЕЛ</span><div class="ability-icon"><svg viewBox="0 0 24 24"><path d="M3 12h11M9 6l6 6-6 6M16 6l5 6-5 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="cd" id="cd-dash"></span><span class="charges" id="charges-dash"></span></div><span class="ability-name">Рывок</span></div>
+      <div class="ability" data-ability="special"><span class="ability-key">E</span><div class="ability-icon"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="cd" id="cd-special"></span></div><span class="ability-name">Спецудар</span></div>
+      <div class="ability rage" data-ability="rage"><span class="ability-key">Q</span><div class="ability-icon"><svg viewBox="0 0 24 24"><path d="M12 2c1 4 4 5 6 7 2 2 3 4 3 7a9 9 0 01-18 0c0-4 2-6 4-8 1 2 2 3 3 3 0-4-1-6 2-9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span class="cd" id="cd-rage"></span><span class="rage-fill" id="rage-fill"></span></div><span class="ability-name">Ярость</span></div>
+    </div>
+
+    <div class="banner" id="banner"></div>
+    <div class="hint" id="hint"></div>
+    <div class="dmg-layer" id="dmg-layer"></div>
+  </div>
+
+  <!-- ============ TOUCH CONTROLS ============ -->
+  <div id="touch" class="touch hidden">
+    <div id="stick-zone" class="stick-zone">
+      <div id="stick-base" class="stick-base"><div class="stick-ring"></div><div id="stick-knob" class="stick-knob"></div></div>
+    </div>
+    <div class="touch-buttons">
+      <button class="tbtn tbtn-rage" data-act="rage" aria-label="Ярость"><span class="tbtn-ring"></span><svg viewBox="0 0 24 24"><path d="M12 2c1 4 4 5 6 7 2 2 3 4 3 7a9 9 0 01-18 0c0-4 2-6 4-8 1 2 2 3 3 3 0-4-1-6 2-9z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></button>
+      <button class="tbtn tbtn-special" data-act="special" aria-label="Спецудар"><span class="tbtn-ring"></span><svg viewBox="0 0 24 24"><path d="M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
+      <button class="tbtn tbtn-dash" data-act="dash" aria-label="Рывок"><span class="tbtn-ring"></span><svg viewBox="0 0 24 24"><path d="M3 12h11M9 6l6 6-6 6M16 6l5 6-5 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="tbtn tbtn-attack" data-act="attack" aria-label="Удар"><span class="tbtn-ring"></span><svg viewBox="0 0 24 24"><path d="M4 20l3-1 11-11-2-2L5 17l-1 3zM14 4l2-2 6 6-2 2-6-6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></button>
+    </div>
+  </div>
+
+  <!-- ============ HUB / TITLE ============ -->
+  <section id="hub" class="hub screen">
+    <div class="hub-inner">
+      <div class="hub-main">
+        <div class="brand">
+          <div class="eyebrow"><span class="rule"></span>РОГАЛИК О ПОБЕГЕ ИЗ ПОДЗЕМНОГО МИРА<span class="rule"></span></div>
+          <h1 class="title"><span class="t1">ТЕНЬ</span><span class="t2">АИДА</span></h1>
+          <p class="tagline">Смерть — не конец. Смерть — это тренировка.</p>
+          <div class="cta-row">
+            <button id="btn-start" class="btn primary" aria-label="Start">
+              <span class="btn-glow"></span>
+              <span class="btn-main">НАЧАТЬ СПУСК</span>
+              <span class="btn-sub" id="start-weapon">КЛИНОК СТИКСА</span>
+            </button>
+            <button id="btn-weapons" class="btn ghost">ОРУЖИЕ</button>
+            <button id="btn-mirror" class="btn ghost mirror-btn">ЗЕРКАЛО</button>
+          </div>
+          <div class="run-stats" id="hub-stats"></div>
+          <div class="controls-hint" id="controls-hint">
+            <span><b>WASD</b> движение</span><span><b>ЛКМ</b> удар</span><span><b>ПРОБЕЛ</b> рывок</span><span><b>E</b> спецудар</span><span><b>Q</b> ярость</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="mirror panel">
+        <div class="panel-head">
+          <span class="panel-eyebrow">ДОМ АИДА</span>
+          <h2>ЗЕРКАЛО НОЧИ</h2>
+          <p>Кровь и тьма делают тебя сильнее. Навсегда.</p>
+        </div>
+        <div class="mirror-balance">
+          <span class="dark-gem"></span>
+          <span class="balance-num" id="darkness-count">0</span>
+          <span class="balance-label">ТЬМА</span>
+          <button id="btn-mirror-mobile" class="btn tiny ghost mirror-mobile-btn">УЛУЧШЕНИЯ</button>
+        </div>
+        <div id="mirror-list" class="mirror-list"></div>
+        <div class="panel-foot">
+          <span id="mirror-foot-note">Тьма остаётся после смерти.</span>
+        </div>
+      </aside>
+    </div>
+    <div class="hub-foot">
+      <span class="foot-mark">Ω</span>
+      <span>Умри. Запомни. Вернись сильнее.</span>
+      <span class="foot-mark">Ω</span>
+    </div>
+  </section>
+
+  <!-- ============ OVERLAY ============ -->
+  <div id="overlay" class="overlay hidden" role="dialog" aria-modal="true"></div>
+
+  <!-- ============ TOASTS ============ -->
+  <div id="toast-wrap" class="toast-wrap"></div>
+
+  <div id="fade" class="fade"></div>
+  <div id="rotate-hint" class="rotate-hint">Поверни устройство для удобства</div>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
