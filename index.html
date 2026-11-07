@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#08040f" />
+<title>TRIBES: VOID ARENA — Jetpack Deathmatch</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2308040f'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%2351efff' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ff2e8a'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="Tribes Void Arena game viewport"></canvas>
+
+  <!-- ===================== HUD ===================== -->
+  <div id="hud" class="hidden" aria-live="polite">
+    <div class="fx-vignette" id="vignette"></div>
+    <div class="fx-quad" id="quadFx"></div>
+    <div class="fx-scanlines"></div>
+    <div class="fx-damage" id="damageFx"></div>
+    <div class="damage-dirs" id="damageDirs"></div>
+
+    <header class="match-bar">
+      <div class="match-mode"><span class="live-dot"></span><b>VOID ARENA</b><em>FREE FOR ALL</em></div>
+      <div class="match-clock"><span id="clock">05:00</span><small>REMAINING</small></div>
+      <div class="match-limit"><span id="fragLimit">20</span><small>FRAG LIMIT</small></div>
+    </header>
+
+    <div class="killfeed" id="killfeed"></div>
+
+    <div class="announce" id="announce"></div>
+
+    <div class="crosshair" id="crosshair">
+      <i class="ch ch-t"></i><i class="ch ch-b"></i><i class="ch ch-l"></i><i class="ch ch-r"></i>
+      <i class="ch-dot"></i>
+      <div class="hitmarker" id="hitmarker"><i></i><i></i><i></i><i></i></div>
+      <div class="hitmarker hitmarker-kill" id="hitmarkerKill"><i></i><i></i><i></i><i></i></div>
+    </div>
+
+    <div class="target-tag hidden" id="targetTag">
+      <b id="targetName">RANGER</b><span><i id="targetHp"></i></span>
+    </div>
+
+    <div class="objective">
+      <span class="obj-kicker">QUAD DAMAGE</span>
+      <div class="obj-track"><i id="quadTimer"></i></div>
+      <div class="obj-state" id="quadState">DORMANT</div>
+    </div>
+
+    <div class="vitals">
+      <div class="vital health">
+        <div class="vital-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z"/></svg>
+        </div>
+        <div class="vital-body">
+          <div class="vital-label">HEALTH</div>
+          <div class="vital-value" id="healthVal">100</div>
+          <div class="vital-bar"><i id="healthBar"></i></div>
+        </div>
+      </div>
+      <div class="vital armor">
+        <div class="vital-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5.4-3.4 9.3-8 11-4.6-1.7-8-5.6-8-11V5l8-3z"/></svg>
+        </div>
+        <div class="vital-body">
+          <div class="vital-label">ARMOR</div>
+          <div class="vital-value" id="armorVal">50</div>
+          <div class="vital-bar"><i id="armorBar"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="center-bottom">
+      <div class="fuel-wrap">
+        <div class="fuel-label"><span>JET FUEL</span><em id="skiTag">SKI READY</em></div>
+        <div class="fuel-track"><i id="fuelBar"></i><b class="fuel-ticks"></b></div>
+      </div>
+      <div class="weapon-name"><b id="weaponName">SCATTERGUN</b><span id="weaponHint">1 / 2 / 3 / 4 · Q LAST</span></div>
+    </div>
+
+    <div class="weapon-panel">
+      <div class="ammo-block">
+        <div class="ammo-value" id="ammoVal">∞</div>
+        <div class="ammo-info"><span id="ammoLabel">SHELLS</span><em id="reloadTag"></em></div>
+      </div>
+      <div class="weapon-slots" id="weaponSlots">
+        <button class="slot" data-slot="0"><b>1</b><span>SCATTER</span><i class="slot-fill"></i></button>
+        <button class="slot" data-slot="1"><b>2</b><span>ROCKET</span><i class="slot-fill"></i></button>
+        <button class="slot" data-slot="2"><b>3</b><span>RAIL</span><i class="slot-fill"></i></button>
+        <button class="slot" data-slot="3"><b>4</b><span>SPIN</span><i class="slot-fill"></i></button>
+      </div>
+    </div>
+
+    <div class="radar-wrap">
+      <div class="radar-head"><span>SECTOR SCAN</span><em id="radarCount">5 HOSTILES</em></div>
+      <canvas id="radar" width="190" height="190"></canvas>
+    </div>
+
+    <div class="score-strip">
+      <span>FRAGS <b id="playerFrags">0</b></span>
+      <span class="score-sep"></span>
+      <span>DEATHS <b id="playerDeaths">0</b></span>
+      <span class="score-sep"></span>
+      <span>STREAK <b id="playerStreak">0</b></span>
+    </div>
+
+    <div class="pointer-hint hidden" id="pointerHint">CLICK TO CAPTURE MOUSE · ESC FOR MENU</div>
+
+    <div class="respawn-overlay hidden" id="respawnOverlay">
+      <div class="respawn-title" id="respawnTitle">YOU WERE FRIED</div>
+      <div class="respawn-sub" id="respawnSub">BY RANGER</div>
+      <div class="respawn-count"><b id="respawnCount">3</b><span>REDEPLOY</span></div>
+    </div>
+
+    <div class="scoreboard hidden" id="scoreboard">
+      <div class="sb-head"><span>VOID ARENA · DEATHMATCH</span><em id="sbClock">05:00</em></div>
+      <div class="sb-cols"><span>#</span><span>PLAYER</span><span>FRAGS</span><span>DEATHS</span><span>STREAK</span></div>
+      <div id="sbRows"></div>
+      <div class="sb-foot">HOLD TAB TO INSPECT · FRAG LIMIT <b>20</b></div>
+    </div>
+
+    <!-- Touch controls -->
+    <div class="touch-controls" id="touchControls">
+      <div class="stick-zone" id="stickZone">
+        <div class="stick-base"><div class="stick-knob" id="stickKnob"></div></div>
+      </div>
+      <div class="look-zone" id="lookZone"><span>LOOK</span></div>
+      <div class="touch-actions">
+        <button class="t-btn t-weapon" id="tWeapon">SWAP</button>
+        <button class="t-btn t-jump" id="tJump"><span>JET</span><small>HOLD</small></button>
+        <button class="t-btn t-fire" id="tFire"><span>FIRE</span></button>
+        <button class="t-btn t-pause" id="tPause">II</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MENU ===================== -->
+  <div id="menu" class="screen menu-screen">
+    <div class="menu-veil"></div>
+    <header class="menu-top">
+      <div class="brandmark"><span class="brand-glyph">◈</span> TRIBES<span class="brand-thin">/VOID</span></div>
+      <div class="menu-meta"><span>BUILD 2.6.11</span><span class="meta-dot"></span><span>SERVER: ORBITAL-04</span><span class="sig">◉ 38ms</span></div>
+    </header>
+
+    <main class="menu-main">
+      <div class="hero">
+        <div class="eyebrow"><i></i> JETPACK DEATHMATCH</div>
+        <h1>TRIBES<span>3D</span></h1>
+        <div class="hero-sub">VOID ARENA <b>//</b> QUAKE VIBES</div>
+        <p class="hero-copy">Ski the hull. Burn the jets. Own the high ground. Four rival tribes are already inbound — the void does not forgive a slow trigger.</p>
+
+        <div class="menu-actions">
+          <button id="playBtn" class="btn-primary" aria-label="Play now"><span>PLAY NOW</span><i>▸</i></button>
+          <button id="controlsBtn" class="btn-ghost">CONTROLS</button>
+        </div>
+
+        <div class="quick-stats">
+          <div><b>20</b><span>FRAG LIMIT</span></div>
+          <div><b>05:00</b><span>MATCH CLOCK</span></div>
+          <div><b>5</b><span>COMBATANTS</span></div>
+          <div><b>∞</b><span>JETPACK</span></div>
+        </div>
+      </div>
+
+      <aside class="menu-card">
+        <div class="card-head"><span>MISSION BRIEF</span><em>ORBITAL ARENA</em></div>
+        <div class="card-map">
+          <div class="map-grid"></div>
+          <div class="map-blip b1"></div><div class="map-blip b2"></div><div class="map-blip b3"></div>
+          <div class="map-center">◈</div>
+          <div class="map-scan"></div>
+        </div>
+        <ul class="brief-list">
+          <li><span>01</span><p><b>JETPACK + SKI</b>Hold Space to fly, Shift to slide. Momentum is life.</p></li>
+          <li><span>02</span><p><b>QUAD DAMAGE</b>Grab the gold core at center. Four seconds of godhood, thirty of terror.</p></li>
+          <li><span>03</span><p><b>ROCKET JUMP</b>Fire at your feet. Pain is a resource.</p></li>
+        </ul>
+        <div class="card-foot"><span class="ready-dot"></span> ARENA READY · 4 HOSTILES DETECTED</div>
+      </aside>
+    </main>
+
+    <footer class="menu-foot">
+      <div class="control-ribbon">
+        <span><kbd>WASD</kbd> MOVE</span><span><kbd>SPACE</kbd> JUMP / JET</span><span><kbd>SHIFT</kbd> SKI</span>
+        <span><kbd>LMB</kbd> FIRE</span><span><kbd>1–4</kbd> WEAPONS</span><span><kbd>TAB</kbd> SCORES</span>
+      </div>
+      <div class="menu-settings">
+        <label>SENS <input id="sensSlider" type="range" min="0.3" max="2.5" step="0.05" value="1" /><b id="sensVal">1.00</b></label>
+        <button id="soundBtn" class="mini-btn">SOUND: ON</button>
+      </div>
+    </footer>
+
+    <div class="controls-panel hidden" id="controlsPanel">
+      <button class="panel-close" id="controlsClose">×</button>
+      <h3>FIELD MANUAL</h3>
+      <div class="ctrl-grid">
+        <div><kbd>W A S D</kbd><span>Ground movement / air strafe</span></div>
+        <div><kbd>SPACE</kbd><span>Jump · hold to ignite jetpack</span></div>
+        <div><kbd>SHIFT</kbd><span>Ski — retain momentum, low friction</span></div>
+        <div><kbd>MOUSE</kbd><span>Aim · click to lock pointer</span></div>
+        <div><kbd>LMB</kbd><span>Fire selected weapon</span></div>
+        <div><kbd>1 2 3 4</kbd><span>Scattergun / Rocket / Rail / Spinfusor</span></div>
+        <div><kbd>Q</kbd><span>Last weapon</span></div>
+        <div><kbd>R</kbd><span>Quick-swap to scattergun</span></div>
+        <div><kbd>TAB</kbd><span>Scoreboard</span></div>
+        <div><kbd>ESC</kbd><span>Pause / release mouse</span></div>
+        <div><kbd>M</kbd><span>Mute audio</span></div>
+        <div><kbd>V</kbd><span>Toggle reduced motion</span></div>
+      </div>
+      <p class="manual-note">Touch devices: left stick moves, drag the right side to look, FIRE and JET buttons handle combat.</p>
+    </div>
+  </div>
+
+  <!-- ===================== PAUSE ===================== -->
+  <div id="pause" class="screen pause-screen hidden">
+    <div class="pause-card">
+      <div class="eyebrow"><i></i> SIMULATION PAUSED</div>
+      <h2>HOLD<br/>THE LINE</h2>
+      <div class="pause-score"><span>YOUR FRAGS <b id="pauseFrags">0</b></span><span>LEADER <b id="pauseLeader">—</b></span></div>
+      <div class="pause-actions">
+        <button id="resumeBtn" class="btn-primary"><span>RESUME</span><i>▸</i></button>
+        <button id="restartBtn" class="btn-ghost">RESTART MATCH</button>
+        <button id="quitBtn" class="btn-ghost">QUIT TO MENU</button>
+      </div>
+      <div class="pause-settings">
+        <label>SENSITIVITY <input id="pauseSens" type="range" min="0.3" max="2.5" step="0.05" value="1" /><b id="pauseSensVal">1.00</b></label>
+        <button id="pauseSoundBtn" class="mini-btn">SOUND: ON</button>
+      </div>
+      <p class="pause-tip" id="pauseTip">TIP: JETPACK UP, CUT THE JETS, AND FIRE ON THE WAY DOWN.</p>
+    </div>
+  </div>
+
+  <!-- ===================== GAME OVER ===================== -->
+  <div id="gameover" class="screen gameover-screen hidden">
+    <div class="go-veil"></div>
+    <div class="go-card">
+      <div class="eyebrow" id="goEyebrow"><i></i> MATCH COMPLETE</div>
+      <h2 id="goTitle">VICTORY</h2>
+      <p id="goSub">You tore the arena apart.</p>
+      <div class="go-score" id="goScore"></div>
+      <div class="go-rows" id="goRows"></div>
+      <div class="pause-actions">
+        <button id="againBtn" class="btn-primary"><span>PLAY AGAIN</span><i>▸</i></button>
+        <button id="menuBtn" class="btn-ghost">MAIN MENU</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="boot"><div class="boot-logo">TRIBES<span>3D</span></div><div class="boot-bar"><i></i></div><div class="boot-text">SPOOLING VOID DRIVE…</div></div>
+  <div id="toast" class="toast hidden"></div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.js" } }
+</script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
