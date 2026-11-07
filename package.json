@@ -1,0 +1,44 @@
+{
+  "name": "warcraft-3d-rts",
+  "version": "1.0.0",
+  "description": "3D RTS game in the style of Warcraft with three races",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js",
+    "dev": "nodemon src/main.js",
+    "build": "webpack --mode production",
+    "test": "jest",
+    "lint": "eslint src/"
+  },
+  "keywords": [
+    "game",
+    "rts",
+    "3d",
+    "warcraft",
+    "strategy",
+    "browser"
+  ],
+  "author": "Game Developer",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.157.0",
+    "@types/three": "^0.157.0",
+    "gsap": "^3.12.2",
+    "socket.io-client": "^4.7.2",
+    "howler": "^2.2.4",
+    "lodash": "^4.17.21",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/example/warcraft-3d-rts.git"
+  }
+}

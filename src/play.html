@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warcraft 3D RTS - Play Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000000;
+            font-family: Arial, sans-serif;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .loading-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 1000;
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 30px;
+            border: 2px solid white;
+            margin: 20px auto;
+            background-color: #333;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background-color: #4a90e2;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .controls-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            font-size: 14px;
+            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .control-item {
+            margin: 5px 0;
+        }
+
+        .control-key {
+            display: inline-block;
+            background-color: #4a90e2;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 5px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingScreen" class="loading-screen">
+        <h1>Loading Warcraft 3D RTS...</h1>
+        <div class="loading-bar">
+            <div id="loadingProgress" class="loading-progress"></div>
+        </div>
+        <div id="loadingStatus">Initializing game...</div>
+        <div id="loadingError" class="error-message hidden"></div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="controls-info">
+        <div class="control-item"><span class="control-key">W</span> Move Forward</div>
+        <div class="control-item"><span class="control-key">S</span> Move Backward</div>
+        <div class="control-item"><span class="control-key">A</span> Move Left</div>
+        <div class="control-item"><span class="control-key">D</span> Move Right</div>
+        <div class="control-item"><span class="control-key">R</span> Build Structure</div>
+        <div class="control-item"><span class="control-key">F</span> Attack/Purchase Unit</div>
+        <div class="control-item"><span class="control-key">G</span> Gather Resources</div>
+        <div class="control-item"><span class="control-key">T</span> Train Unit</div>
+        <div class="control-item"><span class="control-key">ESC</span> Pause Menu</div>
+        <div class="control-item"><span class="control-key">Tab</span> Select Units</div>
+    </div>
+
+    <script>
+        // Global variables
+        let game = null;
+        let loadingProgress = 0;
+        let loadingStatus = '';
+        let loadErrors = [];
+
+        // Update loading progress
+        function updateLoadingProgress(progress, status) {
+            loadingProgress = progress;
+            loadingStatus = status;
+            
+            const progressBar = document.getElementById('loadingProgress');
+            const statusText = document.getElementById('loadingStatus');
+            
+            if (progressBar) {
+                progressBar.style.width = `${progress}%`;
+            }
+            if (statusText) {
+                statusText.textContent = status;
+            }
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorElement = document.getElementById('loadingError');
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+            }
+            loadErrors.push(message);
+        }
+
+        // Load script with progress tracking
+        function loadScript(url, callback, errorCallback) {
+            const script = document.createElement('script');
+            script.src = url;
+            script.onload = () => {
+                updateLoadingProgress(loadingProgress + 10, `Loaded ${url.split('/').pop()}`);
+                if (callback) callback();
+            };
+            script.onerror = (error) => {
+                const message = `Failed to load ${url}: ${error}`;
+                showError(message);
+                if (errorCallback) errorCallback(error);
+            };
+            document.head.appendChild(script);
+        }
+
+        // Initialize game
+        function initializeGame() {
+            updateLoadingProgress(80, 'Initializing game systems...');
+            
+            // Import all required modules
+            const modules = [
+                { url: 'src/GameState.js', name: 'GameState' },
+                { url: 'src/GraphicsSystem.js', name: 'GraphicsSystem' },
+                { url: 'src/ParticleSystem.js', name: 'ParticleSystem' },
+                { url: 'src/InputSystem.js', name: 'InputSystem' },
+                { url: 'src/GameLogicSystem.js', name: 'GameLogicSystem' },
+                { url: 'src/AudioSystem.js', name: 'AudioSystem' },
+                { url: 'src/UISystem.js', name: 'UISystem' }
+            ];
+
+            let loadedModules = 0;
+            const requiredModules = modules.length;
+
+            // Load all modules
+            modules.forEach((module, index) => {
+                loadScript(
+                    module.url,
+                    () => {
+                        loadedModules++;
+                        updateLoadingProgress(
+                            80 + (loadedModules / requiredModules) * 20,
+                            `Loaded ${loadedModules}/${requiredModules} modules...`
+                        );
+                        
+                        if (loadedModules === requiredModules) {
+                            // All modules loaded, create game instance
+                            setTimeout(createGameInstance, 500);
+                        }
+                    },
+                    (error) => {
+                        showError(`Module ${module.name} failed to load`);
+                        loadedModules++;
+                        if (loadedModules === requiredModules) {
+                            createGameInstance();
+                        }
+                    }
+                );
+            });
+        }
+
+        // Create game instance
+        function createGameInstance() {
+            updateLoadingProgress(95, 'Creating game instance...');
+            
+            try {
+                // Import the game engine
+                const GameEngine = window.WarcraftRTSGame || require('src/game.js');
+                
+                // Create game instance
+                game = new GameEngine();
+                
+                // Initialize game
+                game.start();
+                
+                // Hide loading screen
+                setTimeout(() => {
+                    const loadingScreen = document.getElementById('loadingScreen');
+                    if (loadingScreen) {
+                        loadingScreen.style.opacity = '0';
+                        loadingScreen.style.transition = 'opacity 1s';
+                        setTimeout(() => {
+                            if (loadingScreen.parentNode) {
+                                loadingScreen.parentNode.removeChild(loadingScreen);
+                            }
+                        }, 1000);
+                    }
+                }, 1000);
+                
+                updateLoadingProgress(100, 'Game ready!');
+                
+                console.log('🎮 Warcraft 3D RTS loaded successfully!');
+                console.log('👑 Three unique races ready to play');
+                console.log('⚔️ All game systems operational');
+                
+            } catch (error) {
+                showError(`Failed to initialize game: ${error.message}`);
+                console.error('Game initialization error:', error);
+            }
+        }
+
+        // Handle Three.js loading
+        if (typeof THREE === 'undefined') {
+            updateLoadingProgress(10, 'Loading Three.js...');
+            
+            const threeScript = document.createElement('script');
+            threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+            threeScript.onload = () => {
+                updateLoadingProgress(30, 'Three.js loaded, loading game modules...');
+                initializeGame();
+            };
+            threeScript.onerror = () => {
+                showError('Failed to load Three.js. Please check your internet connection.');
+            };
+            document.head.appendChild(threeScript);
+        } else {
+            // Three.js already loaded
+            updateLoadingProgress(30, 'Three.js loaded, loading game modules...');
+            initializeGame();
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (game && game.renderer) {
+                game.renderer.setSize(window.innerWidth, window.innerHeight);
+                if (game.camera) {
+                    game.camera.aspect = window.innerWidth / window.innerHeight;
+                    game.camera.updateProjectionMatrix();
+                }
+            }
+        });
+
+        // Handle visibility change
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (game) {
+                    game.pause();
+                }
+            } else {
+                if (game) {
+                    game.resume();
+                }
+            }
+        });
+
+        // Handle before unload
+        window.addEventListener('beforeunload', () => {
+            if (game) {
+                game.destroy();
+            }
+        });
+
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create game canvas if it doesn't exist
+            if (!document.getElementById('gameCanvas')) {
+                const canvas = document.createElement('canvas');
+                canvas.id = 'gameCanvas';
+                canvas.style.position = 'absolute';
+                canvas.style.top = '0';
+                canvas.style.left = '0';
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                document.body.appendChild(canvas);
+            }
+        });
+    </script>
+</body>
+</html>
