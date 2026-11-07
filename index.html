@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#101619" />
+  <title>Neon Run — City Heist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="game-shell">
+    <canvas id="world"></canvas>
+    <div class="vignette"></div>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">N</span><div><b>NEON RUN</b><small>LOS SANTOS · 02:14 AM</small></div></div>
+      <div class="mission-chip"><i></i><span>THE LAST JOB</span><b>01 / 03</b></div>
+      <div class="top-right"><span class="signal"><i></i> LIVE</span><button id="sound-toggle" aria-label="Toggle sound">♪</button><button id="help-toggle" aria-label="Show controls">?</button></div>
+    </header>
+    <section class="mission-card" id="mission-card">
+      <div class="eyebrow"><span class="eyebrow-line"></span> CURRENT OBJECTIVE <span class="eyebrow-dot"></span></div>
+      <h1 id="mission-title">GET THE CREW</h1>
+      <p id="mission-copy">Meet your people by the old freeway.</p>
+      <div class="mission-progress"><span id="progress-fill"></span></div>
+      <div class="mission-foot"><span id="mission-step">STEP 1 OF 3</span><span id="distance-label">DISTANCE <b>—</b></span></div>
+    </section>
+    <section class="crew-panel">
+      <div class="panel-label">YOUR CREW <span>3 ONLINE</span></div>
+      <div class="crew-list">
+        <div class="crew-member active"><div class="avatar avatar-you">J</div><div class="crew-text"><b>JACKAL</b><small>Driver · You</small></div><i class="crew-status"></i></div>
+        <div class="crew-member" id="crew-nova"><div class="avatar avatar-nova">N</div><div class="crew-text"><b>NOVA</b><small>Hacker · Ready</small></div><i class="crew-status"></i></div>
+        <div class="crew-member" id="crew-ace"><div class="avatar avatar-ace">A</div><div class="crew-text"><b>ACE</b><small>Muscle · Ready</small></div><i class="crew-status"></i></div>
+      </div>
+    </section>
+    <aside class="right-stack">
+      <div class="heat-card"><span>HEAT</span><div class="heat-stars" id="heat-stars"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i></div><small id="heat-label">CLEAN</small></div>
+      <div class="map-wrap"><div class="map-head"><span>VESPUCCI DISTRICT</span><span class="map-dot"></span></div><canvas id="minimap" width="180" height="180"></canvas><div class="map-legend"><i></i> YOU <i class="legend-goal"></i> OBJECTIVE</div></div>
+    </aside>
+    <div class="bottom-left"><div class="cash-icon">$</div><div><small>TAKE HOME</small><b id="cash-value">$ 0</b></div><div class="cash-divider"></div><div><small>CREW CUT</small><b id="crew-cut">—</b></div></div>
+    <div class="bottom-center"><div class="interaction" id="interaction"><span class="keycap">E</span><span id="interaction-text">INTERACT</span></div><div class="toast" id="toast"></div></div>
+    <div class="vehicle-readout" id="vehicle-readout"><b id="speed-value">000</b><span>KM/H</span><i></i><small>SPORT</small></div>
+    <div class="controls-hint" id="controls-hint"><div class="hint-head"><b>FIELD CONTROLS</b><button id="close-help">×</button></div><div><kbd>W A S D</kbd><span>Move / steer</span></div><div><kbd>SHIFT</kbd><span>Sprint</span></div><div><kbd>E</kbd><span>Interact / enter or exit</span></div><div><kbd>SPACE</kbd><span>Handbrake</span></div><small>Touch: use the on-screen pad</small></div>
+    <div class="touch-controls" id="touch-controls"><div class="touch-pad"><button data-key="w">▲</button><div><button data-key="a">◀</button><button data-key="s">▼</button><button data-key="d">▶</button></div></div><button class="touch-action" data-key="e">E<br><small>ACTION</small></button></div>
+    <div class="start-screen" id="start-screen"><div class="start-kicker"><span></span> A STORY OF LOYALTY & BAD DECISIONS</div><h2>ONE LAST<br><em>RUN.</em></h2><p>City's asleep. Your crew isn't.<br>Make it count.</p><button id="start-button">START THE JOB <span>↗</span></button><div class="start-bottom">WASD TO MOVE <i>·</i> E TO INTERACT <i>·</i> FIND YOUR CREW</div></div>
+    <div class="mission-complete" id="mission-complete"><div class="complete-card"><div class="complete-icon">✓</div><small>JOB COMPLETE</small><h2>YOU MADE IT OUT.</h2><p id="complete-summary">A clean getaway. Nobody left behind.</p><b id="complete-cash">$ 48,000</b><button id="play-again">RUN IT BACK <span>↻</span></button></div></div>
+    <footer class="bottom-bar"><span>LS <b>FM</b> <i>—</i> 101.7</span><span>LOS SANTOS <i>·</i> NIGHT SHIFT</span></footer>
+  </main>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
